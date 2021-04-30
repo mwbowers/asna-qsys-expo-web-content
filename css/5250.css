@@ -1,0 +1,790 @@
+﻿/*-------------------------------------------*\
+   5250 Terminal Emulator
+\*-------------------------------------------*/
+
+body {
+    margin:0px;
+    padding:0px;
+}
+
+pre {
+    font-family: Consolas, monospace; /* Consolas font is similar to IBM i Terminal Font */
+}
+
+#AsnaTermFacade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    background-color: black;
+    overflow: hidden;
+}
+
+#AsnaTerm5250 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#AsnaTermCursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    font-family: monospace;
+    vertical-align: middle;
+    background-color: #d8d8d8;
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+    z-index: 200;
+}
+
+.AsnaTermFldTouchableMask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    -webkit-appearance: none;
+    font-size: 0.5px;
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+    /* IE */
+    background: none;
+}
+
+#AsnaTermTextSelection {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    background-color: white;
+    opacity: 0.5;
+    /* Firefox, Chrome */
+    filter: alpha(opacity=50);
+    /* IE */
+}
+
+#AsnaTermErrMsg {
+    font-family: 'Segoe UI', Arial;
+    color: red;
+}
+
+#AsnaTermSettingsDialog {
+    position: absolute;
+    background-color: #444444;
+    color: #fff;
+    font-size: 18px;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', Helvetica, Arial, Verdana, sans-serif;
+    width: 100%;
+    display: none;
+}
+
+#AsnaTermSettingsSlider {
+    position: absolute;
+    z-Index: 600;
+    width: 48px;
+    height: 15px;
+    display: none;
+    pointer-events: none;
+}
+
+.AsnaTermSliderRow {
+    padding: 0;
+    margin: 0;
+    width: 48px;
+    height: 6px;
+    display: block;
+}
+
+#AsnaTermSettingsOptions {
+    padding-top: 15px;
+    height: 50%;
+}
+
+.AsnaTermSettingsLabel {
+    margin-left: 20px;
+    display: inline-block;
+    vertical-align: middle;
+    height: 2em;
+    padding-bottom: 11px;
+}
+
+#AsnaTermSettingsNotes {
+    margin-left: 20px;
+    font-size: 16px;
+    padding-top: 10px;
+}
+
+#AsnaTermPREF_Colors {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 40px;
+    margin-top: 0;
+    margin-bottom: 0;
+    width: 80px;
+    height: 35px;
+    font-size: 18px;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #3366CC;
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+#AsnaTermIbmKeyPad {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    width: 700px;
+    height: 49px;
+    background-color: #A5A5A6;
+    -webkit-transition-property: opacity;
+    -moz-transition-property: opacity;
+    -o-transition-property: opacity;
+    transition-property: opacity;
+    -webkit-transition-duration: 1000ms;
+    -moz-transition-duration: 1000ms;
+    -o-transition-duration: 1000ms;
+    transition-duration: 1000ms;
+    opacity: 0;
+    display: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#AsnaTermStatusBar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    display: none;
+    cursor: pointer;
+    background-color: whitesmoke;
+}
+
+.AsnaTermIbmBigButton {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    width: 120px;
+    height: 32px;
+    font-size: 18px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 0 8px black;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    color: #fff;
+    display: none;
+}
+
+.AsnaTermIbmBigButtonMobile {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    width: 160px;
+    height: 50px;
+    font-size: 20px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 0 8px black;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    color: #fff;
+    display: none;
+}
+
+.AsnaTermGoColorButton {
+    background-color: #006800;
+}
+
+.AsnaTermGoColorButtonMobile {
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.6, #006800), color-stop(0.3, #00c000));
+}
+
+.AsnaTermWarningColorButton {
+    background-color: #e97620;
+}
+
+.AsnaTermWarningColorButtonMobile {
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.3, #1754a3), color-stop(0.6, #6eaffa));
+}
+
+.AsnaTermFKeyHotSpot {
+    position: absolute;
+    padding: 0;
+    width: 40px;
+    height: 28px;
+    font-size: 18px;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #3366CC;
+    display: none;
+    cursor: pointer;
+}
+
+.AsnaTermFKeyHotSpotMobile {
+    position: absolute;
+    padding: 0;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 0 8px black;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    color: #fff;
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.3, #1754a3), color-stop(0.6, #6eaffa));
+    display: none;
+}
+
+#AsnaTermIbmKeyPad .arrows {
+    fill: #fff;
+}
+
+.AsnaTermIbmKeyPadButton {
+    position: absolute;
+    padding: 0;
+    left: 2px;
+    top: 4px;
+    width: 80px;
+    height: 40px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 0 8px black;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    color: #fff;
+    background-color: #1754a3;
+    cursor: pointer;
+}
+
+.AsnaTermIbmKeyPadButtonMobile {
+    position: absolute;
+    padding: 0;
+    left: 2px;
+    top: 4px;
+    width: 80px;
+    height: 40px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 0 8px black;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    color: #fff;
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.3, #1754a3), color-stop(0.6, #6eaffa));
+}
+
+#AsnaTermIbmUserDefKeysPopup {
+    padding: 0;
+    background-color: #e0e0e0;
+    display: none;
+    position: absolute;
+    opacity: 1.0;
+    border-radius: 5px;
+}
+
+#AsnaTermIbmUserDefKeysPopup .arrows {
+    fill: #000000;
+}
+
+.AsnaTermIbmPopupSelButton, .AsnaTermIbmPopupSelButtonMobile {
+    position: absolute;
+    padding: 0;
+    width: 80px;
+    height: 40px;
+    background-color: white;
+    border-width: 1px;
+    border-color: #e0e0e0;
+    font-size: 0.8em;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 8px;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.AsnaTermIbmPopupSelActiveButton {
+    color: #fff;
+    background-color: #0033CC;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.AsnaTermIbmActionKeyMapTooltip {
+    padding: 2px;
+    border: 1px solid black;
+    color: black;
+    background-color: whitesmoke;
+    font-size: small;
+    display: block;
+    border-radius: 3px;
+}
+
+#AsnaTermIbmFKeysPopup {
+    background-color: #e0e0e0;
+    display: none;
+    position: absolute;
+    opacity: 1.0;
+    border-radius: 5px;
+}
+
+#AsnaTermIbmSpecialKeysPopup {
+    background-color: #e0e0e0;
+    display: none;
+    position: absolute;
+    opacity: 1.0;
+    border-radius: 5px;
+}
+
+.AsnaToggleSwitch {
+    border: 0.1em solid #444;
+    display: inline-block;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    width: 5em;
+    height: 2em;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 1.1em;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.AsnaToggleSwitch-wrapper > * {
+    display: block;
+    float: left;
+    height: 2em;
+    line-height: 2em;
+    -webkit-box-shadow: inset 0 0.2em 0.4em rgba(0, 0, 0, 0.75);
+    box-shadow: inset 0 0.2em 0.4em rgba(0, 0, 0, 0.75);
+}
+
+.AsnaToggleSwitch > .AsnaToggleSwitch-wrapper {
+    display: block;
+    width: 8em;
+    height: 2em;
+    color: #fff;
+    overflow: hidden;
+    text-shadow: 0 -0.1em 0 rgba(0, 0, 0, 0.8);
+    filter: dropshadow(color=#000000, offx=0, offy=-1);
+    border-radius: 1em;
+}
+
+.AsnaToggleSwitch-wrapper > .AsnaToggleSwitch-on {
+    background: #0b0;
+    width: 3em;
+    padding-left: 1em;
+    border-radius: 0.8em 0 0 0.8em;
+}
+
+.AsnaToggleSwitch-wrapper > .AsnaToggleSwitch-off {
+    background: #b00;
+    width: 3em;
+    padding-right: 1em;
+    text-align: right;
+    border-radius: 0 0.8em 0.8em 0;
+}
+
+.AsnaToggleSwitch-wrapper > .AsnaToggleSwitch-handle {
+    background: #eee;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eee), color-stop(100%, #aaa));
+    /* Chrome, Safari4+ */
+    background: -webkit-linear-gradient(top, #eee 0, #aaa 100%);
+    /* Chrome10+, Safari5.1+ */
+    background: linear-gradient(top, #eee 0, #aaa 100%);
+    width: 2em;
+    margin-left: -5em;
+    -webkit-box-shadow: 0 0.15em 0.4em #000;
+    box-shadow: 0 0.15em 0.4em #000;
+    border: 0.1em solid #999;
+    border-radius: 0.99em;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.AsnaToggleSwitchSwipeRight {
+    margin-left: 0;
+}
+
+.AsnaToggleSwitchSwipeLeft {
+    margin-left: -3em;
+}
+
+.AsnaTermColors {
+    border-color: darkgray;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    left: 20px;
+    top: 20px;
+    width: 600px;
+    height: 395px;
+    display: block;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', Helvetica, Arial, Verdana, sans-serif;
+}
+
+#bterm-settings-colors-close-icon {
+    display: block;
+    text-align: right;
+}
+
+.AsnaTermColorsMobile {
+    position: absolute;
+    color: black;
+    background-color: white;
+    left: 20px;
+    top: 20px;
+    width: 825px;
+    height: 600px;
+    z-Index: 1000;
+    display: none;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', Helvetica, Arial, Verdana, sans-serif;
+    font-size: 16px;
+}
+
+.AsnaTermColorWheel {
+    position: absolute;
+    left: 350px;
+    top: 33px;
+    cursor: pointer;
+}
+
+.AsnaTermColorWheelMobile {
+    position: absolute;
+    left: 350px;
+    top: 33px;
+}
+
+.AsnaTermWhiteHex {
+    position: absolute;
+    left: 393px;
+    top: 246px;
+    cursor: pointer;
+}
+
+.AsnaTermWhiteHexMobile {
+    position: absolute;
+    left: 434px;
+    top: 444px;
+}
+
+.AsnaTermGrayWheel {
+    position: absolute;
+    left: 434px;
+    top: 246px;
+    cursor: pointer;
+}
+
+.AsnaTermGrayWheelMobile {
+    position: absolute;
+    left: 514px;
+    top: 448px;
+}
+
+.AsnaTermBlackHex {
+    position: absolute;
+    left: 515px;
+    top: 246px;
+    cursor: pointer;
+}
+
+.AsnaTermBlackHexMobile {
+    position: absolute;
+    left: 644px;
+    top: 442px;
+}
+
+.AsnaTermColorSample {
+    text-align: center;
+    font-size: medium;
+    /*float: left;*/
+    width: 23px;
+    height: 27.5px;
+}
+
+.AsnaTermColorSampleMobile {
+    text-align: center;
+    font-size: medium;
+    float: left;
+    width: 23px;
+    height: 28px;
+}
+
+.AsnaTermColorPreText {
+    padding: 3px 0 0 0;
+    margin: 0;
+}
+
+.AsnaTermCOLOR_Subtitle {
+    font-weight: bold;
+    color: blue;
+    line-height: 1.5em;
+    padding: 0 0 0 0;
+}
+
+.AsnaTermCOLOR_Label {
+    font-weight: normal;
+    color: black;
+    line-height: 1.5em;
+    padding: 4px 0 0 4px;
+}
+
+.AsnaTermCOLOR_SELECTION {
+    /*position: absolute;
+    top: 5px;
+    left: 5px;*/
+}
+
+.AsnaTermCOLOR_OTHER {
+    /*float: left;*/
+}
+
+.AsnaTermCOLOR_ATTR {
+    float: left;
+}
+
+.AsnaTermCOLOR_ATTR_LIST {
+    list-style-type: none;
+    padding: 0 3px 0 3px;
+}
+
+.AsnaTermCOLOR_SAMPLE {
+    float: left;
+}
+
+.AsnaTermCOLOR_SAMPLE_LIST {
+    list-style-type: none;
+    padding: 0 3px 0 3px;
+}
+
+.AsnaTermCOLOR_COLOR {
+    float: left;
+}
+
+.AsnaTermCOLOR_COLOR_LIST {
+    list-style-type: none;
+    padding: 0 3px 0 3px;
+}
+
+.AsnaTermCOLOR_INPUT_HEX {
+    border: 2px solid whitesmoke;
+    width: 90%;
+}
+
+/*.AsnaTermCOLOR_INPUT_HEXMobile {
+    width: 70px;
+    padding: 0px 0px 3px 0px;
+    line-height: 1.2em;
+    height: 23px;
+}*/
+
+/*.AsnaTermCOLOR_BKCOLOR {
+    float: left;
+}
+
+.AsnaTermCOLOR_BKCOLOR_LIST {
+    list-style-type: none;
+    padding: 0 3px 0 3px;
+}
+
+.AsnaTermCOLOR_OTHER {
+    float: left;
+}
+
+.AsnaTermCOLOR_OTHER_LIST {
+    list-style-type: none;
+    padding: 0 3px 0 3px;
+}*/
+
+.AsnaTermColorLuminance {
+    position: absolute;
+    left: 368px;
+    top: 300px;
+}
+
+.AsnaTermColorLuminanceMobile {
+    position: absolute;
+    left: 170px;
+    top: 466px;
+}
+
+.AsnaTermColorLumSlider {
+    padding: 0;
+    width: 150px;
+}
+
+.AsnaTermColorLumSliderMobile {
+    padding: 0;
+    width: 150px;
+}
+
+.AsnaTermColorApply {
+    position: absolute;
+    left: 342px;
+    top: 350px;
+    width: 120px;
+    height: 35px;
+    border-radius: 5px;
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+.AsnaTermColorApplyMobile {
+    position: absolute;
+    left: 488px;
+    top: 550px;
+    width: 150px;
+    font-size: medium;
+    border-radius: 3px;
+    height: 35px;
+    -webkit-appearance: button;
+}
+
+.AsnaTermColorDefaults {
+    position: absolute;
+    left: 468px;
+    top: 350px;
+    width: 120px;
+    height: 35px;
+    border-radius: 5px;
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+.AsnaTermColorDefaultsMobile {
+    position: absolute;
+    left: 655px;
+    top: 550px;
+    width: 150px;
+    font-size: medium;
+    height: 35px;
+    border-radius: 3px;
+    -webkit-appearance: button;
+}
+
+/* Paste confirmation dialog (non-IE) */
+#ask-user-verify-paste, #ask-user-verify-paste-dialog-text-area {
+    font-family: Arial;
+}
+
+/* Terminal Color defaults */
+.AsnaTermDEF_GREEN {
+    color: #00FF00;
+}
+
+.AsnaTermDEF_BKGD {
+    color: #000000;
+}
+
+.AsnaTermDEF_BLUE {
+    color: #0099FF;
+}
+
+.AsnaTermDEF_RED {
+    color: #FF0000;
+}
+
+.AsnaTermDEF_WHITE {
+    color: #FFFFFF;
+}
+
+.AsnaTermDEF_TURQUOISE {
+    color: #AFEEEE;
+}
+
+.AsnaTermDEF_YELLOW {
+    color: #FFFF00;
+}
+
+.AsnaTermDEF_PINK {
+    color: #FF1493;
+}
+
+.AsnaTermDEF_CURSOR {
+    color: #FFFFFF;
+}
+
+.AsnaTermDEF_SEL {
+    color: #FFFFFF;
+}
+
+.bterm-color-selection-heading {
+    font-weight: bold;
+    color: blue;
+}
+
+.bterm-color-selection-main-color-table-row {
+    display: grid;
+    grid-template-columns: repeat(4, 90px);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.bterm-color-selection-label {
+    margin-left: 10px;
+}
+
+.bterm-color-selection-sample-text-table-row {
+    display: grid;
+    grid-template-columns: repeat(4, 20px);
+    padding-top: 0;
+    padding-bottom: 1px;
+}
+
+.bterm-color-selection-other-color-table-row {
+    display: grid;
+    grid-template-columns: repeat(2, 150px);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+

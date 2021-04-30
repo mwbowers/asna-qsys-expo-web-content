@@ -1,0 +1,138 @@
+﻿/*-------------------------------------------*\
+    Styles for calendar
+
+        Use by:  DdsDateField
+                DdsDecDateField 
+                DdsDateTimeField
+
+\*-------------------------------------------*/
+
+.calendar-button {
+    width: 1.5em;
+    margin-left: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 0;
+    padding-bottom: 0px;
+    border: 0px;
+    color: orangered;
+    cursor: pointer;
+    background-color: var(--body-background);
+    vertical-align: middle;
+}
+
+.calendar-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: center;
+    cursor: default;
+    background-color: whitesmoke; /*#86aed7;*/
+    width: 280px;
+    box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 4px 4px 4px 4px;
+    -moz-border-radius: 4px 4px 4px 4px;
+    -webkit-border-radius: 4px 4px 4px 4px;
+    border-radius: 4px 4px 4px 4px;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: black;
+    box-sizing: content-box;
+}
+
+.calendar-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #3366cc;
+    text-transform: capitalize;
+}
+
+.calendar-date-cell {
+    color: black;
+}
+
+.calendar-selected-date-cell, .calendar-today-date-cell {
+    color: #003366;
+    width: inherit;
+    cursor: pointer;
+    border-radius: 50%;
+    color: #003366;
+}
+
+.calendar-selected-date-cell {
+    background-color: #ffff66;
+}
+
+.calendar-today-date-cell {
+    color: black;
+    font-weight: bold;
+    background-color: white;
+}
+
+.calendar-week-day-cell {
+    width: 20px;
+    line-height: 32px;
+    text-transform: capitalize;
+    color: darkslategray;
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+}
+
+.calendar-nav-row {
+    background-color: #fff;
+    color: #3366cc;
+}
+
+.calendar-nav-icon {
+    cursor: pointer;
+}
+
+.calendar-nav-image, .calendar-nav-image-larger {
+    color: royalblue;
+    vertical-align: middle;
+    display: block;
+    height: 1em;
+}
+
+.calendar-nav-image-larger {
+    height: 1.5em;
+}
+
+.calendar-goto-today, .calendar-drag-bar, .calendar-close {
+    height: 12px;
+    color: darkslategray;
+    cursor: pointer;
+}
+
+.calendar-goto-today {
+    text-align: left;
+    padding-left: 5px;
+}
+
+.calendar-close {
+    text-align: right;
+    padding-right: 5px;
+}
+
+.calendar-table thead tr.calendar-nav-row td, .calendar-table thead {
+    height: 40px
+}
+
+.calendar-table tbody td {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+    padding: 0;
+}
+
+.calendar-table tbody td:hover {
+    background: lightgray;
+    border-radius: 50%;
+    color: black;
+}
+
+/* (Excluded date cells) */
+.calendar-ex-date-cell {
+    cursor: pointer;
+    color: lightgray;
+}
