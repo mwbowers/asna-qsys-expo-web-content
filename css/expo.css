@@ -217,6 +217,10 @@ body {
     padding: 0 !important; /* Is there a way to avoid !important here?*/
 }
 
+.dds-preserve-blanks {
+    white-space: pre;
+}
+
 /*-------------------------------------------*\
     DDS Signature
 
