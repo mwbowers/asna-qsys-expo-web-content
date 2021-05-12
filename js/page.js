@@ -115,8 +115,6 @@ class Page {
         this.initIcons(sflEndIcons);
 
         Page.promptResettableErrorMessage(thisForm);
-
-        Page.resolveCssCalcStyle(thisForm);
     }
 
     static setupAutoPostback(form, aidKeyBitmap) {
@@ -191,26 +189,6 @@ class Page {
 
         if (msgText.length) {
             PageAlert.show(msgText[0], "Reset");
-        }
-    }
-
-    static resolveCssCalcStyle(form) {
-        const elements = form.querySelectorAll(`[${AsnaDataAttrName.CALC_CSS_STYLE}]`);
-
-        for (let i = 0, l = elements.length; i < l; i++) {
-            const el = elements[i];
-            const attrVal = el.getAttribute(AsnaDataAttrName.CALC_CSS_STYLE);
-            const parts = attrVal.split(':');
-            if (parts.length <2) { continue; }
-            switch (parts[0]) {
-                case 'left': {
-                    const col = Page.parseCol('coltopix', parts[1]);
-                    if (col > 1 && col < 132) {
-                        el.style.left = `calc(var(--dds-grid-col-width)*${col})`;
-                    }
-                }
-                break;
-            }
         }
     }
 
