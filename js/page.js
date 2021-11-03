@@ -159,21 +159,6 @@ class Page {
         });
     }
 
-    static isFuncKey(key) {
-        let fKeys = [];
-        for (let i = 0; i < 24; i++) {
-            fKeys.push(`F${i+1}`);
-        }
-
-        let index = fKeys.indexOf(key);
-
-        if (index>=0) {
-            return { functionNumber: index + 1 };
-        }
-
-        return null;
-    }
-
     static promptResettableErrorMessage(form) {
         const sflMsg = form.querySelectorAll(`[${AsnaDataAttrName.SUBFILE_MSG_TEXT}]`);
 
@@ -205,7 +190,7 @@ class Page {
             return; // Ignore
         }
 
-        let action = Kbd.processKeyDown(event, this.aidKeyBitmap);
+        const action = Kbd.processKeyDown(event, this.aidKeyBitmap);
 
         if (action.aidKeyToPush) {
             if (action.useAjax && action.sflCtlStore) {
@@ -226,18 +211,12 @@ class Page {
     }
 
     handlePushKeyOnClickEvent(event, keyToPush, focusElement, fieldValue, virtualRowCol) {
-        let isFuncKey = Page.isFuncKey(keyToPush);
-        if (isFuncKey) {
-            const aidKeyHelper = new AidKeyHelper(this.aidKeyBitmap);
-            if (aidKeyHelper.isEnabled(isFuncKey.functionNumber - 1)) {
-                const cursorElement = FeedbackArea.getElementAtCursor(this.getForm());
-                if (cursorElement) {
-                    const sflFoldDropAction = FoldDrop.processCadidateKey(keyToPush, cursorElement);
-                    if (sflFoldDropAction && sflFoldDropAction.useAjax && sflFoldDropAction.sflCtlStore) {
-                        SubfilePaging.requestPage(sflFoldDropAction.aidKeyToPush, sflFoldDropAction.sflCtlStore, this.handleAjaxGetRecordsResponseEvent);
-                        return;
-                    }
-                }
+        const keyDetail = Kbd.convertKeyNameToKeyDetail(keyToPush,this.aidKeyBitmap);
+        if (keyDetail) {
+            const action = Kbd.processKeyDetail(keyDetail,this.aidKeyBitmap);
+            if (action.aidKeyToPush && action.useAjax && action.sflCtlStore) {
+                SubfilePaging.requestPage(action.aidKeyToPush, action.sflCtlStore, this.handleAjaxGetRecordsResponseEvent);
+                return;
             }
         }
 

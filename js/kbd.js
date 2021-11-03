@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) ASNA, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
@@ -42,13 +42,11 @@ const KEY_NOT_VALID_MSG = {
 
 class Kbd {
     processKeyDown(event, aidKeyBitmap) {
-        let keyDetail = Kbd.parseKey(event);
+        const keyDetail = Kbd.parseKey(event);
 
         if (!keyDetail.keyCode) {
             return { ignore: true };
         }
-
-        const aidKeyHelper = new AidKeyHelper(aidKeyBitmap);
 
         if (keyDetail.keyCode === KEY_CODE_ESCAPE ) {
             return { aidKeyToPush: 'ESC', shouldCancel: true };
@@ -57,9 +55,33 @@ class Kbd {
         //    return { aidKeyToPush: 'TAB', shouldCancel: true };
         //}
 
+        return this.processKeyDetail(keyDetail, aidKeyBitmap);
+    }
+
+    convertKeyNameToKeyDetail(candidateKeyName) {
+        let keyCode = '';
+        switch (candidateKeyName) {
+            case 'Enter': keyCode = KEY_CODE_ENTER; break;
+            case 'PgUp': keyCode = KEY_CODE_PAGE_UP; break;
+            case 'PgDn': keyCode = KEY_CODE_PAGE_DOWN; break;
+            default: {
+                const fKeyCand = Kbd.isFuncKey(candidateKeyName);
+                if (fKeyCand) {
+                    keyCode = KEY_CODE_F1 + fKeyCand.functionNumber - 1;
+                }
+                break;
+            }
+        }
+
+        return { keyCode: keyCode };
+    }
+
+    processKeyDetail(keyDetail, aidKeyBitmap) {
+        const aidKeyHelper = new AidKeyHelper(aidKeyBitmap);
+
         if ((Kbd.isFKey(keyDetail) || keyDetail.keyCode === KEY_CODE_ENTER || keyDetail.keyCode === KEY_CODE_PAGE_UP || keyDetail.keyCode === KEY_CODE_PAGE_DOWN) && !keyDetail.altKey && !keyDetail.ctrlKey) {
             switch (keyDetail.keyCode) {
-                case KEY_CODE_ENTER :
+                case KEY_CODE_ENTER:
                     if (keyDetail.srcElement && Kbd.isTextArea(keyDetail.srcElement)) {
                         return { returnBooleanValue: true }; // On a text area, <enter> should be handled by the element (in this case to possibly insert a page-break)
                     }
@@ -96,23 +118,28 @@ class Kbd {
     }
 
     static processRollKey(aidKeyHelper, aidKey, inputEl) {
-        const subfileControlName = SubfileController.getClosestSubfileCtrlName(inputEl);
+        let subfileControlName = SubfileController.getClosestSubfileCtrlName(inputEl);
+
+        if (!subfileControlName) { // No subfile has been selected ... look for first one.
+            subfileControlName = SubfileController.getFirstSubfileCtrlName();
+        }
+
         if (subfileControlName) {
-            const sflCtlStore = SubfilePagingStore.getSflCtlStore(subfileControlName);
-            if (sflCtlStore) {
+            const sflCtrlStore = SubfilePagingStore.getSflCtlStore(subfileControlName);
+            if (sflCtrlStore) {
 
                 if (aidKey === "PgUp") {
-                    if (sflCtlStore.sflRecords.from === 0 && aidKeyHelper.isEnabled(AidKeyMapIndex.PageUp)) {
+                    if (sflCtrlStore.current && sflCtrlStore.current.topRrn === 0 && aidKeyHelper.isEnabled(AidKeyMapIndex.PageUp)) {
                         return { aidKeyToPush: aidKey, shouldCancel: true }; // We know there would be more records above, post PgUp
                     }
                 }
                 else { // aidKey === "PgDn"
-                    if (sflCtlStore.sflRecords.isLastPage === "true" && aidKeyHelper.isEnabled(AidKeyMapIndex.PageDown)) {
+                    if (sflCtrlStore.sflRecords.isLastPage === "true" && aidKeyHelper.isEnabled(AidKeyMapIndex.PageDown)) {
                         return { aidKeyToPush: aidKey, shouldCancel: true }; // We know there would be more records above, post PgDn
                     }
                 }
 
-                return { aidKeyToPush: aidKey, shouldCancel: true, useAjax: true, sflCtlStore: sflCtlStore };
+                return { aidKeyToPush: aidKey, shouldCancel: true, useAjax: true, sflCtlStore: sflCtrlStore };
             }
         }
 
@@ -137,8 +164,24 @@ class Kbd {
         }
     }
 
+
     static isFKey(keyDetail) {
         return keyDetail.keyCode >= KEY_CODE_F1 && keyDetail.keyCode <= KEY_CODE_F12;
+    }
+
+    static isFuncKey(keyName) {
+        const fKeys = [];
+        for (let i = 0; i < 24; i++) {
+            fKeys.push(`F${i + 1}`);
+        }
+
+        const index = fKeys.indexOf(keyName);
+
+        if (index >= 0) {
+            return { functionNumber: index + 1 };
+        }
+
+        return null;
     }
 
     isPgUp(keyCode) {
@@ -147,6 +190,10 @@ class Kbd {
 
     isPgDn(keyCode) {
         return keyCode === KEY_CODE_PAGE_DOWN;
+    }
+    
+    showInvalidRollAlert() {
+        PageAlert.show(KEY_NOT_VALID_MSG.PgUp_PgDown, OK_TEXT);
     }
 
     static isTextArea(el) {
@@ -159,8 +206,13 @@ class Kbd {
 }
 
 class FoldDrop {
-    static processCadidateKey(aidKey, inputEl) {
-        const subfileControlName = SubfileController.getClosestSubfileCtrlName(inputEl);
+    static processCadidateKey(aidKey, eventSrcEl) {
+        let subfileControlName = SubfileController.getClosestSubfileCtrlName(eventSrcEl);
+
+        if (!subfileControlName) { // No subfile has been selected ... look for first one.
+            subfileControlName = SubfileController.getFirstSubfileCtrlName();
+        }
+
         if (subfileControlName) {
             const sflCtlStore = SubfilePagingStore.getSflCtlStore(subfileControlName);
             if (sflCtlStore && aidKey === sflCtlStore.fldDrop.aidKey) {
@@ -168,7 +220,7 @@ class FoldDrop {
             }
         }
 
-        return null; // May need more code ...
+        return null;
     }
 }
 

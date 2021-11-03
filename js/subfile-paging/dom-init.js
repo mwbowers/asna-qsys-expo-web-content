@@ -174,6 +174,14 @@ class SubfileController {
         return '';
     }
 
+    static getFirstSubfileCtrlName() {
+        const sflCtrlNames = SubfilePagingStore.getSflCtlStoreNames();
+        if (sflCtrlNames && sflCtrlNames.length) {
+            return sflCtrlNames[0];
+        }
+        return null;
+    }
+
     static addMouseCueEvents(sflEl, inputBehaviour) {
         if (!inputBehaviour || !inputBehaviour.dblClick && !inputBehaviour.clickSetsCurrentRecord && !inputBehaviour.clickSetsCurrentRecord) {
             return false;

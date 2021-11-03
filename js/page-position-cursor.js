@@ -99,7 +99,7 @@ class PositionCursor {
     }
 
     static toFirstInputInSubfile(sflEl) {
-        const inputsInSubfile = sflEl.querySelectorAll('input:not([type="hidden"])');
+        const inputsInSubfile = sflEl.querySelectorAll('input,select,textarea:not([type="hidden"])');
         const inputCount = inputsInSubfile.length;
 
         if (inputCount === 0) {
@@ -118,7 +118,7 @@ class PositionCursor {
     }
 
     static toLastInputInSubfile(sflEl) {
-        const inputsInSubfile = sflEl.querySelectorAll('input:not([type="hidden"])');
+        const inputsInSubfile = sflEl.querySelectorAll('input,select,textarea:not([type="hidden"])');
         const inputCount = inputsInSubfile.length;
 
         if (inputCount === 0) {
@@ -141,7 +141,7 @@ class PositionCursor {
     }
 
     static findInput(sflEl, sflInputFieldName, includeHidden) {
-        let selector = 'input';
+        let selector = 'input,select,textarea';
         if (!includeHidden)
             selector += ':not([type="hidden"])';
 

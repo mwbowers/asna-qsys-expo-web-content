@@ -34,7 +34,7 @@ class FeedbackArea {
         }
     }
 
-    updateElementFeedback(form, el, sflCursorRrn, activeWinSpecs) {
+    updateElementFeedback(form, el, activeWinSpecs, sflCursorRrn) {
         if (form) { // Clear the last value ...
             FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atCursorLocation, '');
             FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atRowCol, '');
@@ -52,7 +52,7 @@ class FeedbackArea {
 
         FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atCursorLocation, modelName);
 
-        let rowcol = el.getAttribute(AsnaDataAttrName.ROW_COL);
+        let rowcol = el.getAttribute(AsnaDataAttrName.ROWCOL);
         if (rowcol) {
             FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atRowCol, rowcol);
         }
@@ -63,7 +63,7 @@ class FeedbackArea {
         }
 
         if (sflCursorRrn >= 0) {
-            FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.sflCursorRrn, sflCursorRrn);
+            FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atSflCursorRrn, sflCursorRrn);
         }
     }
 

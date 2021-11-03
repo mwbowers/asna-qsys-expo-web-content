@@ -15,7 +15,7 @@ const debugClientStorage = false;
 
 import { AsnaDataAttrName } from '../js/asna-data-attr.js';
 import { Base64 } from './base-64.js';
-
+import { StringExt } from './string.js';
 
 const WINDOW_CSS_CLASS = {
     PAGE_BACKGROUND: 'dds-window-background',
@@ -296,24 +296,51 @@ class DdsWindow {
     }
 
     calcDdsRowHeight(form) {
-        let height = this.calcHeight(form.querySelectorAll(`div[class~="${CLASS_GRID_ROW}"]`));
-        if (height) {
-            return height;
+        let rowHeightCalc = this.calcRowHeight(form.querySelectorAll(`div[class~="${CLASS_GRID_ROW}"]`));
+        let emptyRowHeightCalc = this.calcRowHeight(form.querySelectorAll(`div[class~="${CLASS_GRID_EMPTY_ROW}"]`));
+
+        if (!emptyRowHeightCalc.guess) { // More reliable: non-empty affected by standard HTML elements (or icons)
+            return emptyRowHeightCalc.result;
         }
-        return this.calcHeight(form.querySelectorAll(`div[class~="${CLASS_GRID_EMPTY_ROW}"]`));
+
+        if (!rowHeightCalc.guess) {
+            return rowHeightCalc.result;
+        }
+
+        let bestGuessCalc = this.calcRowHeight();
+        return bestGuessCalc.result;
     }
 
-    calcHeight(oneOfSelection) {
+    calcRowHeight(oneOfSelection) {
+        let fontHeight = this.calcFontSize();
+        let padTop = fontHeight * 0.26; // computedStyle.getPropertyValue('--dds-grid-row-padding-top');
+        let padBott = fontHeight * 0.26; // computedStyle.getPropertyValue('--dds-grid-row-padding-bottom');
+        let bestGuess = padTop + fontHeight + padBott;
+
         if (!oneOfSelection || !oneOfSelection.length) {
-            return 0;
+            return { result: bestGuess, guess: true };
         }
-        const rect = oneOfSelection[0].getBoundingClientRect();
-        return rect.height;
+        let maxRowHeight = 0;
+        oneOfSelection.forEach((row) => {
+            const rect = row.getBoundingClientRect();
+            maxRowHeight = Math.max(rect.height, maxRowHeight);
+        });
+
+        if (maxRowHeight > fontHeight) {
+            return { result: maxRowHeight, guess: false };
+        }
+
+        return { result: bestGuess, guess: true };
     }
 
     calcColWidth() {
-        let gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
-        return parseFloat(gridColWidth); // Remove 'px'
+        let gridColWidthVar = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
+        return parseFloat(StringExt.trim(gridColWidthVar)); // Remove 'px'
+    }
+
+    calcFontSize() {
+        let bodyFontSizeVar = getComputedStyle(document.documentElement).getPropertyValue('--body-font-size');
+        return parseFloat(StringExt.trim(bodyFontSizeVar)); // Remove 'px'
     }
 
     getMainWindowRecordSpec(form) {
