@@ -36,9 +36,9 @@ class PositionCursor {
             const end = parseInt(candidate.style.gridColumnEnd, 10);
             if (col >= start && col <= end) {
                 const offset = col-start;
-                candidate.focus();
+                candidate.focus(); // Note: Page.handleOnFocusEvent will selectText (by default)
                 if (offset > 0) {
-                    PositionCursor.selectText(candidate, offset, offset);
+                    setTimeout( () => PositionCursor.selectText(candidate, offset, offset), 1);
                 }
                 return;
             }

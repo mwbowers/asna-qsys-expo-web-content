@@ -31,6 +31,7 @@ import { Validate } from '../js/validate.js';
 import { StringExt } from '../js/string.js';
 import { PageAlert } from './page-alert.js';
 import { Signature } from './signature/signature.js';
+import { BrowserInfo } from './detection.js';
 
 class Page {
     constructor() {
@@ -229,6 +230,13 @@ class Page {
         FeedbackArea.updateElementFeedback(this.getForm(), element, activeWinSpecs);
 
         window.asnaExpo.page.lastFocus = element;
+
+        if (BrowserInfo.isDesktop()) {
+            if (element.value && element.value.length && typeof element.value.length === 'number') {
+                const toPos = element.value.length;
+                PositionCursor.selectText(element, 0, toPos);
+            }
+        }
     }
 
     handleWindowResizeEvent() {
