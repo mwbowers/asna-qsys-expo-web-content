@@ -82,7 +82,14 @@ class SubfileController {
     }
 
     static selectAllWithGridColumns(sflEl) {
-        return sflEl.querySelectorAll('[style*="grid-column"]');
+        const withGridColList = sflEl.querySelectorAll('[style*="grid-column"]');
+        const withGridAreaList = sflEl.querySelectorAll('[style*="grid-area"]');
+        let result = [];
+
+        withGridColList.forEach(el => result.push(el));
+        withGridAreaList.forEach(el => result.push(el));
+
+        return result;
     }
 
     static constrainRecordCueing(sflEl) {
@@ -105,8 +112,11 @@ class SubfileController {
     }
 
     static offsetGridCol(el, offset) {
-        let newColStart = parseInt(el.style.gridColumnStart) + offset;
-        const newColEnd = parseInt(el.style.gridColumnEnd) + offset;
+        const colSpan = SubfileController.getGridColStartEnd(el);
+        if (IsNaN(colSpan.start) || IsNaN(colSpan.end))
+            return;
+        let newColStart = colSpan.start + offset;
+        const newColEnd = colSpan.end + offset;
 
         if (newColStart === 0) {
             newColStart = 1;
@@ -119,12 +129,36 @@ class SubfileController {
         let minCol = 999;
         let maxCol = 1;
         for (let i = 0, l = withGridCol.length; i < l; i++) {
-            const el = withGridCol[i];
-            minCol = Math.min(parseInt(el.style.gridColumnStart), minCol);
-            maxCol = Math.max(parseInt(el.style.gridColumnEnd), maxCol);
+            const colSpan = SubfileController.getGridColStartEnd(el);
+            if (!isNaN(colSpan.start)) {
+                minCol = Math.min(colSpan.start, minCol);
+            }
+
+            if (!isNaN(colSpan.end)) {
+                maxCol = Math.max(colSpan.end, maxCol);
+            }
         }
 
         return maxCol > minCol ? { min: minCol, max: maxCol } : {};
+    }
+
+    static getGridColStartEnd(el) {
+        const SPAN_ = 'span ';
+        const colStart = el.style.gridColumnStart;
+        let start = NaN, end = NaN;
+
+        if (colStart) { // assumed
+            start = parseInt(colStart);
+            const colEnd = el.style.gridColumnEnd;
+            if (colEnd) {
+                if (colEnd.startsWith && colEnd.startsWith(SPAN_)) {
+                    end = start + parseInt(colEnd.substring(SPAN_.length));
+                }
+                else
+                    end = parseInt(colEnd);
+            }
+        }
+        return { start: start, end: end };
     }
 
     static selectAllRows(sflEl) {
