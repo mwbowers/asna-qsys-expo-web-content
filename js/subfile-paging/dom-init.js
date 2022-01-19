@@ -113,7 +113,7 @@ class SubfileController {
 
     static offsetGridCol(el, offset) {
         const colSpan = SubfileController.getGridColStartEnd(el);
-        if (IsNaN(colSpan.start) || IsNaN(colSpan.end))
+        if (isNaN(colSpan.start) || isNaN(colSpan.end))
             return;
         let newColStart = colSpan.start + offset;
         const newColEnd = colSpan.end + offset;
@@ -129,7 +129,7 @@ class SubfileController {
         let minCol = 999;
         let maxCol = 1;
         for (let i = 0, l = withGridCol.length; i < l; i++) {
-            const colSpan = SubfileController.getGridColStartEnd(el);
+            const colSpan = SubfileController.getGridColStartEnd(withGridCol[i]);
             if (!isNaN(colSpan.start)) {
                 minCol = Math.min(colSpan.start, minCol);
             }
