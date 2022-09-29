@@ -1,0 +1,37 @@
+name: Purge release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      DEPLOY_VERSION:
+        description: 'Version to deploy'
+        required: true
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Get purge tool
+        uses: actions/checkout@v3
+        with:
+          repository: asnarnd/PurgeExpoWebContentRelease
+          ref: master
+          path: PurgeExpoWebContentRelease
+          token: ${{ secrets.GH_APIKEY }}
+
+      - name: Restore purge tool dependencies 
+        run: dotnet restore PurgeExpoWebContentRelease/PurgeExpoWebContentRelease.sln --locked-mode
+
+      - name: Build purge tool
+        run: dotnet build PurgeExpoWebContentRelease/PurgeExpoWebContentRelease.sln --no-restore --configuration release
+
+      - name: Run purge - New Release
+        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.event.release.tag_name }}
+        if: ${{ github.event_name == 'release' }}
+
+      - name: Run purge - Manual
+        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.event.inputs.DEPLOY_VERSION }}
+        if: ${{ github.event_name != 'release' }}
