@@ -12,6 +12,7 @@ import { AsnaDataAttrName } from '../js/asna-data-attr.js';
 import { Base64 } from '../js/base-64.js';
 import { Unique } from '../js/dom-events.js';
 
+const TAB_INDEX_ATTR = 'tabindex';
 
 class Checkbox {
     init(form) {
@@ -42,17 +43,19 @@ class Checkbox {
 
     static replaceInputWithDivWithLabelAndCheckbox(input, checkboxOptions) {
         const div = document.createElement('div');
+        const tabIndex = input.getAttribute(TAB_INDEX_ATTR);
         div.style.gridColumn = input.style.gridColumn;
-        if (input.tabIndex) {
-            div.tabIndex = input.tabIndex;
-        }
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.id = Unique.getUniqueID();
         checkbox.name = input.name;
         checkbox.checked = checkboxOptions.checked;
-        if (checkboxOptions.readonly)
+        if (checkboxOptions.readonly) {
             checkbox.disabled = true;
+        }
+        else if (tabIndex) {
+            checkbox.setAttribute(TAB_INDEX_ATTR, tabIndex)
+        }
 
         const encOptions = input.getAttribute(AsnaDataAttrName.CHECKBOX_OPTIONS);
         checkbox.setAttribute(AsnaDataAttrName.CHECKBOX_OPTIONS, encOptions);
@@ -132,13 +135,11 @@ class RadioButtonGroup {
 
     static replaceInputWithDivWithLabelAndRadios(input, options) {
         const div = document.createElement('div');
+        const tabIndex = input.getAttribute(TAB_INDEX_ATTR);
         const divRadioGroup = document.createElement(RADIO_GROUP_TAGNAME);
         divRadioGroup.id = Unique.getUniqueID();
         divRadioGroup.setAttribute('data-name', input.name);
         div.style.gridColumn = input.style.gridColumn;
-        if (input.tabIndex) {
-            div.tabIndex = input.tabIndex;
-        }
 
         const rowcol = input.getAttribute(AsnaDataAttrName.ROWCOL);
         if (rowcol) {
@@ -169,6 +170,9 @@ class RadioButtonGroup {
             const radio = document.createElement('input');
             radio.type = 'radio';
             radio.id = Unique.getUniqueID();
+            if (tabIndex) {
+                radio.setAttribute(TAB_INDEX_ATTR, tabIndex)
+            }
             radio.name = input.name; // Note: all with same name, that defines a group
             radio.checked = i < options.values.length ? options.currentValue === options.values[i] : false;
             labelRadio.setAttribute('for', radio.id);
