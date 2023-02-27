@@ -96,7 +96,7 @@ class EnhancedAlert {
             ul.removeChild(li);
         });
         const ul = msgPanel.querySelector('ul');
-        if (ul && ul.childNodes && ul.childNodes.length === 0) {
+        if (ul && ul.children && ul.children.length === 0) {
             const div = ul.parentElement;
             div.removeChild(ul);
         }
