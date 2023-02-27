@@ -48,12 +48,9 @@ class Kbd {
             return { ignore: true };
         }
 
-        if (keyDetail.keyCode === KEY_CODE_ESCAPE ) {
-            return { aidKeyToPush: 'ESC', shouldCancel: true };
+        if (keyDetail.keyCode === KEY_CODE_ESCAPE) {
+            return { ignore: true, removeVolatileMsgs: true };
         }
-        //else if (keyDetail.keyCode === KEY_CODE_TAB) {
-        //    return { aidKeyToPush: 'TAB', shouldCancel: true };
-        //}
 
         return this.processKeyDetail(keyDetail, aidKeyBitmap);
     }

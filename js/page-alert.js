@@ -95,8 +95,12 @@ class EnhancedAlert {
             const ul = li.parentElement;
             ul.removeChild(li);
         });
+        const ul = msgPanel.querySelector('ul');
+        if (ul && ul.childNodes && ul.childNodes.length === 0) {
+            const div = ul.parentElement;
+            div.removeChild(ul);
+        }
     }
-
 
     handleOkClickEvent(event) {
         DomEvents.cancelEvent(event);

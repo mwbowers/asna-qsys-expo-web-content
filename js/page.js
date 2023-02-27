@@ -252,6 +252,9 @@ class Page {
                 this.pushKey(aidKey);
             }
         }
+        else if (action.removeVolatileMsgs) {
+            PageAlert.removeVolatileMsgs();
+        }
 
         if (action.shouldCancel) {
             DomEvents.cancelEvent(event);
