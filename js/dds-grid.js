@@ -119,12 +119,37 @@ class DdsGrid {
             }
         }
         // else
-        //    Note: For Page with active WINDOW, this is done later in page - setMainSizeToImageSize()
+        //    Note: For Page with active WINDOW, this is done later in completeWindowGridRows()
 
         rowSpanCollection.forEach((recordsContainer) => {
             this.completeRowSpanGridRows(recordsContainer);
             this.adjustVirtRowCol(recordsContainer);
         });
+    }
+
+    completeWindowGridRows(winPopup, winSpecs) {
+        const pageMinRows = winSpecs.height + 1;
+        const rows = this.findRows(winPopup);
+        if (rows && rows.length ) {
+            const lastRow = rows[rows.length - 1];
+            const range = this.getRowRange(lastRow);
+            if (!range) { return; }
+                
+            let lastRowVal = 99;
+            if (range.length === 1) {
+                lastRowVal = parseInt(range[0], 10);
+            }
+            else {
+                lastRowVal = parseInt(range[1], 10);
+            }
+            if (lastRowVal < pageMinRows) {
+                const nextSibling = lastRow.nextElementSibling;
+
+                if (nextSibling) { // If we don't have any other non-Row sibling elements, don't bother.
+                    this.insertEmptyRows(pageMinRows - lastRowVal, nextSibling, lastRowVal + 1);
+                }
+            }
+        }
     }
 
     getRowRange(row) {

@@ -456,6 +456,11 @@ body {
     top: -1px;
 }
 
+/*-------------------------------------------*\
+    Message Panel (server and client validation).
+
+\*-------------------------------------------*/
+
 .dds-message-panel {
     overflow: auto;
     color: red;
@@ -468,6 +473,20 @@ body {
     margin-left: 1em;
     font-size: calc( var(--body-font-size) * 0.8 );
     padding: 0;
+}
+
+.dds-message-panel:not(:empty) { /* When there are messages, the panel overlaps the last row on the Page (similar to 5250) */
+    position: relative;
+    background: beige;
+    bottom: var(--body-font-size);
+    height: calc( var(--body-font-size) * 0.8 );
+    border: var(--popup-border-width) solid;
+    border-radius: 5px;
+    border-color: orange;
+    border-width: medium;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    overflow: auto;
 }
 
 /*-------------------------------------------*\

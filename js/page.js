@@ -114,6 +114,7 @@ class Page {
 
         if (this.winPopup) {
             DdsGrid.moveRecordsToPopup(thisForm, this.winPopup);
+            DdsGrid.completeWindowGridRows(this.winPopup, DdsWindow.winSpecs);
         }
 
         DdsGrid.truncateColumns(thisForm);
@@ -234,7 +235,7 @@ class Page {
         const aidKey = action.aidKeyToPush;
 
         if (aidKey) {
-            PageAlert.removeVolatileMsgs();
+            PageAlert.removeVolatileMsgs(true);
 
             const store = action.sflCtlStore;
             let postAjax = action.useAjax && store;
@@ -253,7 +254,7 @@ class Page {
             }
         }
         else if (action.removeVolatileMsgs) {
-            PageAlert.removeVolatileMsgs();
+            PageAlert.removeVolatileMsgs(true);
         }
 
         if (action.shouldCancel) {

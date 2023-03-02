@@ -34,6 +34,7 @@ const VAR_WIN_BKGND_SIZE = '--main-window-background-size';
 class DdsWindow {
     constructor() {
         this.winPopupHeader = null;
+        this.winSpecs = {};
 
         this.handleDragStartEvent = this.handleDragStartEvent.bind(this);
         this.handleDragOverEvent = this.handleDragOverEvent.bind(this);
@@ -76,6 +77,7 @@ class DdsWindow {
                 ClientStorage.removeNamedPageBackground(url, NEXT_BACKGROUND_IMAGE_NAME);
                 this.serializeWinRestoreStack();
             }
+            this.winSpecs = this.parseWinSpec();
         }
         else {
             DdsWindow.log(`init  not a WINDOW, clear cache!`);
@@ -217,7 +219,6 @@ class DdsWindow {
         }
 
         const winPopup = document.createElement('div');
-        const winSpec = this.parseWinSpec();
 
         winPopup.className = WINDOW_CSS_CLASS.WINPOPUP;
         const rowHeight = DdsGrid.calcRowHeight(mainEl);
@@ -227,10 +228,10 @@ class DdsWindow {
         const headerHeight = this.calcWindowHeaderHeight();
         const border = this.calcPopupBorderWidth();
 
-        const left = winSpec.left * colWidth;
-        const top = (winSpec.top * rowHeight ) - (headerHeight + padding.top + padding.bottom);
-        const width = (winSpec.width * colWidth) + (2 * border);
-        const height = headerHeight + (winSpec.height * rowHeight) + (padding.top + padding.bottom);
+        const left = this.winSpecs.left * colWidth;
+        const top = (this.winSpecs.top * rowHeight ) - (headerHeight + padding.top + padding.bottom);
+        const width = (this.winSpecs.width * colWidth) + (2 * border);
+        const height = headerHeight + (this.winSpecs.height * rowHeight) + (padding.top + padding.bottom);
 
         winPopup.style.left = `${left}px`;
         winPopup.style.top = `${top}px`;
@@ -238,7 +239,7 @@ class DdsWindow {
         winPopup.style.height = `${height}px`;
 
         this.winPopupHeader = document.createElement('div');
-        this.winPopupHeader.innerText = winSpec.title;
+        this.winPopupHeader.innerText = this.winSpecs.title;
         this.winPopupHeader.className = 'dds-window-header';
         winPopup.appendChild(this.winPopupHeader);
         const recordCointaner = document.createElement('div');
@@ -255,7 +256,7 @@ class DdsWindow {
 
     parseWinSpec() {
         if (!this.activeWindowRecord) {
-            return null;
+            return {};
         }
 
         const encWinSpec = this.activeWindowRecord.getAttribute(AsnaDataAttrName.WINDOW);
@@ -264,7 +265,7 @@ class DdsWindow {
             return JSON.parse(strJson);
         }
 
-        return null;
+        return {};
     }
 
     prepareForSubmit(form, htmlToImageCompleteEvent, htmlToImageFilterEvent) {

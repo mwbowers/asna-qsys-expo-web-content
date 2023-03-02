@@ -63,7 +63,7 @@ class EnhancedAlert {
     prependPanelMsg(msg) {
         const msgPanel = EnhancedAlert.selectFirstMsgPanel();
         if (!msgPanel) { return false; }
-        this.removeVolatileMsgs(msgPanel);
+        this.removeVolatileMsgs(false, msgPanel);
         let ul = msgPanel.querySelector('ul');
         if (!ul) {
             ul = document.createElement('ul');
@@ -83,7 +83,7 @@ class EnhancedAlert {
         return true;
     }
 
-    removeVolatileMsgs(msgPanel) {
+    removeVolatileMsgs(includeServerValidationMsgs, msgPanel) {
         if (!msgPanel) {
             msgPanel = EnhancedAlert.selectFirstMsgPanel();
         }
@@ -91,17 +91,25 @@ class EnhancedAlert {
             return;
         }
         const volatileElements = msgPanel.querySelectorAll(`li[${AsnaDataAttrName.VOLATILE_MSG}]`);
-        volatileElements.forEach((li) => {
-            const ul = li.parentElement;
-            ul.removeChild(li);
-        });
-        const ul = msgPanel.querySelector('ul');
-        if (ul && ul.children && ul.children.length === 0) {
-            const div = ul.parentElement;
-            div.removeChild(ul);
+        if (volatileElements && volatileElements.length) {
+            volatileElements.forEach((li) => {
+                const ul = li.parentElement;
+                ul.removeChild(li);
+            });
+            const ul = msgPanel.querySelector('ul');
+            if (ul && ul.children && ul.children.length === 0) {
+                const div = ul.parentElement;
+                div.removeChild(ul);
+            }
+        }
+        else if (includeServerValidationMsgs) { 
+            const ul = msgPanel.querySelector('ul');
+            if (ul) {
+                const div = ul.parentElement;
+                div.removeChild(ul);
+            }
         }
     }
-
     handleOkClickEvent(event) {
         DomEvents.cancelEvent(event);
         this.dialog.close();
