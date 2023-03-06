@@ -14,7 +14,7 @@ import { LetterSpacing } from '../js/letter-spacing.js';
 import { InvertFontColors } from '../js/invert-font-colors.js';
 import { Calendar } from '../js/calendar/calendar.js';
 import { DdsGrid } from '../js/dds-grid.js';
-import { DropDown } from '../js/dropdown.js';
+import { DropDown, ContextMenu } from '../js/dropdown.js';
 import { Checkbox, RadioButtonGroup } from '../js/multiple-choice.js';
 import { WaitForResponseAnimation } from '../js/wait-response/wait-response-animation.js';
 import { NavigationMenu } from '../js/nav-menu.js';
@@ -142,8 +142,8 @@ class Page {
             PositionCursor.toDefaultField(thisForm);
         }
         this.initIcons(sflEndIcons);
-
-        Page.promptResettableErrorMessage(thisForm);
+        ContextMenu.initNonSubfileMenus(main);
+        ContextMenu.prepare(main);
     }
 
     static setupAutoPostback(form, aidKeyBitmap) {
@@ -198,24 +198,6 @@ class Page {
                 }
             }
         });
-    }
-
-    static promptResettableErrorMessage(form) {
-        const sflMsg = form.querySelectorAll(`[${AsnaDataAttrName.SUBFILE_MSG_TEXT}]`);
-
-        const msgText = [];
-        for (let i = 0, l = sflMsg.length; i < l; i++) {
-            const sflrec = sflMsg[i];
-            sflrec.removeAttribute(AsnaDataAttrName.SUBFILE_MSG_TEXT);
-            if (sflrec.innerText) {
-                msgText.push(sflrec.innerText);
-                sflrec.style.display = 'none';
-            }
-        }
-
-        if (msgText.length) {
-            PageAlert.show(msgText[0], "Reset");
-        }
     }
 
     static parseCol(fnStr, data) {
@@ -483,6 +465,11 @@ class Page {
 
         if (virtualRowCol) {
             FeedbackArea.updateRowColFeedback(form, virtualRowCol);
+        }
+
+        if (aidKeyToPush === "None") { // Context Menu option requesting to not submit.
+            this.suspendAsyncPost = false;
+            return;
         }
 
         FeedbackArea.updatePushedKey(form, aidKeyToPush);

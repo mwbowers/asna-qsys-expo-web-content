@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export { SubfileController, Subfile };
+export { SubfileController, Subfile, EXPO_SUBFILE_CLASS };
 
 import { SubfilePagingStore, SubfileState, InputState } from './paging-store.js';
 import { PositionCursor } from '../page-position-cursor.js';
@@ -13,6 +13,7 @@ import { DdsGrid } from '../dds-grid.js';
 import { Base64 } from '../base-64.js';
 import { AsnaDataAttrName } from '../asna-data-attr.js';
 import { FeedbackArea } from '../feedback-area.js';
+import { ContextMenu } from '../dropdown.js';
 
 const HIDDEN_NAME_FOLD_LINES_PER_RECORD = 'fold-lines-per-record';
 
@@ -50,6 +51,7 @@ class SubfileController {
                         if (typeof initData.sflRecords.allowsAjax === 'undefined' ) {
                             initData.sflRecords.allowsAjax = true;
                         }
+                        if (initData.menu && initData.menu.list) { ContextMenu.add(initData.name, initData.menu.list); }
                         const sflCtrlStore = SubfilePagingStore.register(initData);
                         if (!SubfileController.hasNestedSflController(sflcDiv)) {
                             let recordsContainer = DdsGrid.findRowSpanDiv(initData.name, sflcDiv);
@@ -207,17 +209,13 @@ class SubfileController {
             if (inputBehaviour.cueCurrentRecord) {
                 row.addEventListener('mouseout', () => {
                     row.classList.remove(EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD);
-                    // SubfileController.hideIconsInRow(row);
                 });
                 row.addEventListener('mouseover', () => {
                     row.classList.add(EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD);
-                    // SubfileController.showIconsInRow(row);
                 });
-
-                // SubfileController.hideIconsInRow(row);
             }
 
-            const cueCurrentRecord = inputBehaviour.clickSetsCurrentRecord
+            const cueCurrentRecord = inputBehaviour.clickSetsCurrentRecord;
             row.addEventListener('click', (evt) => {
                 SubfileController.setCurrentSelection(recordsContainer, row, cueCurrentRecord);
                 const targetTagName = evt.target.tagName;
@@ -418,22 +416,6 @@ class SubfileController {
         }
     }
 
-    static hideIconsInRow(row) {
-        const svgInRow = row.querySelectorAll('svg');
-
-        for (let k = 0, lk = svgInRow.length; k < lk; k++) {
-            svgInRow[k].classList.add('icon-in-not-selected-row');
-        }
-    }
-
-    static showIconsInRow(row) {
-        const svgInRow = row.querySelectorAll('svg');
-
-        for (let k = 0, lk = svgInRow.length; k < lk; k++) {
-            svgInRow[k].classList.remove('icon-in-not-selected-row');
-        }
-    }
-
     static hasNestedSflController(sflcDiv) {
         const children = sflcDiv.children;
         for (let i = 0, l = children.length; i < l; i++ ) {
@@ -600,5 +582,22 @@ class Subfile {
         if (eos > 0) {
             return parts[1].substr(0, eos);
         }
+    }
+
+    static matchRowFieldName(fieldName, rowfieldNameCand) {
+        if (!fieldName) { return false; }
+        const iStart = fieldName.indexOf("[");
+        const iEnd = fieldName.indexOf("]");
+        if (iStart < 0 || iEnd < 0 || !(iStart < iEnd) || !(fieldName.length > iEnd + 1) ) {
+            return fieldName === rowfieldNameCand;
+        }
+        const ciStart = rowfieldNameCand.indexOf("[");
+        const ciEnd = rowfieldNameCand.indexOf("]");
+        if (ciStart < 0 || ciEnd < 0 || !(ciStart < ciEnd) || !(rowfieldNameCand.length > ciEnd + 1)) {
+            return false;
+        }
+
+        return fieldName.substr(0, iStart) === rowfieldNameCand.substr(0, ciStart) && 
+            fieldName.substr(iEnd+1) === rowfieldNameCand.substr(ciEnd+1);
     }
 }

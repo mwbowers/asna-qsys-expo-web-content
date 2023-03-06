@@ -6,9 +6,13 @@
  */
 
 export { theDropDown as DropDown };
+export { theContextMenu as ContextMenu };
 
 import { AsnaDataAttrName } from './asna-data-attr.js';
 import { StringExt } from './string.js';
+import { DdsGrid } from './dds-grid.js';
+import { EXPO_SUBFILE_CLASS, SubfileController, Subfile } from './subfile-paging/dom-init.js';
+import { Base64 } from './base-64.js';
 
 class DropDown {
     initBoxes() {
@@ -177,4 +181,233 @@ class DropDown {
     }
 }
 
+const MENU_NAV_SELECTOR = 'nav.dds-menu';
+
+class ContextMenu {
+    constructor() {
+        this.menusByRecord = [];
+        this.list = [];
+    }
+
+    add(record, menuList) {
+        menuList.forEach((menu) => {
+            if (!this.menusByRecord[record]) {
+                this.menusByRecord[record] = [];
+            }
+            this.menusByRecord[record].push(menu);
+        });
+    }
+
+    initNonSubfileMenus(main) {
+        const recordMenus = main.querySelectorAll(`div[${AsnaDataAttrName.RECORD_CONTEXT_MENUS}]`);
+        if (recordMenus && recordMenus.length) {
+            recordMenus.forEach((record) => {
+                const recordName = record.getAttribute(AsnaDataAttrName.RECORD);
+                const menuEncodedData = record.getAttribute(AsnaDataAttrName.RECORD_CONTEXT_MENUS);
+                const menuInitData = Base64.decode(menuEncodedData);
+                const initData = JSON.parse(menuInitData);
+
+                this.add(recordName, initData);
+            });
+        }
+    }
+
+    prepare(main) {
+        if (!main) { return; }
+
+        for (let i = 0, l = Object.keys(this.menusByRecord).length; i < l; i++) {
+            const recordName = Object.keys(this.menusByRecord)[i];
+            const recordMenus = this.menusByRecord[recordName];
+            recordMenus.forEach((menu) => {
+                const menuEl = ContextMenu.createMenu(main, recordName, menu);
+                if (menuEl) {
+                    this.list.push(menuEl);
+                }
+            });
+        }
+    }
+
+    static createMenu(main, recordName, menuData) {
+        const recordEl = main.querySelector(`div[${AsnaDataAttrName.RECORD}='${recordName}']`);
+
+        if (!recordEl) { return null; }
+
+        const sflRecordsContainer = DdsGrid.findRowSpanDiv(recordName, recordEl);
+        const isSubfile = sflRecordsContainer !== null;
+
+        const leftTop = ContextMenu.findRelPosition(isSubfile ? sflRecordsContainer : recordEl, menuData);
+
+        if (!leftTop || !Object.keys(leftTop).length) { return null; }
+
+        const div = document.createElement('div');
+        div.classList.add('dds-menu-anchor');
+        div.style.position = 'absolute';
+        div.style.left = `${leftTop.l}px`;
+        div.style.top = `${leftTop.t}px`;
+
+        const button = document.createElement('button');
+        const nav = document.createElement('nav');
+        const ul = document.createElement('ul');
+
+        button.type = 'button';
+        button.className = 'dds-menu-anchor';
+        button.innerText = '☰';
+        button.addEventListener('click', (e) => {
+            const me = e.target;
+            const menu = me.parentElement;
+            if (menu && menu._row) {
+                const row = menu._row;
+                const recordsContainer = row.closest('div[data-asna-row]');
+                if (recordsContainer) {
+                    SubfileController.setCurrentSelection(recordsContainer, menu._row, true);
+                }
+            }
+            ContextMenu.toggleVisibility(me.parentElement.querySelector(MENU_NAV_SELECTOR));
+        });
+
+        if (isSubfile) {
+            button.addEventListener('mouseover', (e) => {
+                const me = e.target;
+                const menu = me.parentElement;
+                if (menu && menu._row) {
+                    menu._row.classList.add(EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD);
+                }
+            });
+        }
+
+        nav.className = 'dds-menu';
+
+        div.appendChild(button);
+        div.appendChild(nav);
+
+        nav.appendChild(ul);
+
+        menuData.options.forEach((menuOption) => {
+            const item = document.createElement('li');
+            if (menuOption.text === "--" && menuOption.aidKeyName === "None" ) {
+                item.className = 'dds-menu-divider';
+                const hRule = document.createElement('hr');
+                item.appendChild(hRule);
+            }
+            else {
+                const menuButton = document.createElement('button');
+                menuButton.type = 'button';
+                item.appendChild(menuButton);
+
+                menuButton.innerText = menuOption.text;
+                menuButton.addEventListener('click', (e) => {
+                    const me = e.target;
+                    const nav = me.closest(MENU_NAV_SELECTOR);
+                    if (nav) { nav.style.display = 'none'; }
+                    let ancestorEl = nav.parentElement._row;
+
+                    if (!ancestorEl) { ancestorEl = nav.parentElement._record; }
+
+                    if (ancestorEl) {
+                        ContextMenu.doActionDescendant(ancestorEl, menuOption);
+                    }
+                });
+            }
+            ul.appendChild(item);
+        });
+
+        const menu = main.appendChild(div);
+
+        if (isSubfile) {
+            const rows = SubfileController.selectAllRowsIncludeTR(sflRecordsContainer);
+            rows.forEach((row) => {
+                row.addEventListener('mouseover', () => {
+                    ContextMenu.collapse(menu);
+                    ContextMenu.positionAtRow(menu, row);
+                });
+            });
+        }
+        else {
+            menu._record = recordEl;
+            recordEl.addEventListener('click', () => ContextMenu.collapse(menu) );
+        }
+
+        return menu;
+    }
+
+    static toggleVisibility(nav) {
+        if (!nav) { return; }
+        switch (nav.style.display) {
+            case '':
+            case 'none':
+                nav.style.display = 'inline-block';
+                break;
+            case 'inline-block':
+                nav.style.display = 'none';
+                break;
+        }
+    }
+
+    static doActionDescendant(ancestorEl, menuOption) {
+        let virtRowCol = menuOption.vRowCol;
+        if (menuOption.focusField) {
+            const inputs = ancestorEl.querySelectorAll('input[name]:not([type="hidden"])');
+            if (inputs) {
+                let inputName = '';
+                inputs.forEach((input) => {
+                    const name = input.getAttribute('name');
+                    if (Subfile.matchRowFieldName(name, menuOption.focusField)) {
+                        inputName = name;
+                        if (!virtRowCol) {
+                            virtRowCol = input.getAttribute(AsnaDataAttrName.ROWCOL);
+                        }
+                    }
+                });
+                if (inputName) {
+                    setTimeout(() => {
+                        asnaExpo.page.pushKey(menuOption.aidKeyName, inputName, menuOption.fieldValue, virtRowCol);
+                    }, 1);
+                }
+            }
+        }
+        else if (menuOption.aidKeyName !== "None") {
+            setTimeout(() => {
+                asnaExpo.page.pushKey(menuOption.aidKeyName, "", "", virtRowCol);
+            }, 1);
+        }
+    }
+
+    static findRelPosition(container, menuData) {
+        let result = {};
+
+        const placeHolders = container.querySelectorAll(`div[${AsnaDataAttrName.CONTEXT_MENU}]`);
+        if (!placeHolders || !placeHolders.length) { return result; }
+
+        placeHolders.forEach((ph) => {
+            if (!Object.keys(result).length) {
+                const gridCol = ph.style.gridColumnStart;
+                if (gridCol && parseInt(gridCol, 10) === menuData.col) {
+                    const rMenu = ph.getBoundingClientRect();
+                    result = { l: rMenu.left, t: rMenu.top };
+                }
+            }
+        });
+
+        return result;
+    }
+
+    static collapse(menu) {
+        const nav = menu.querySelector(MENU_NAV_SELECTOR);
+        if (nav) {
+            nav.style.display = 'none';
+        }
+    }
+
+    static positionAtRow(menu, row) {
+        const rowRect = row.getBoundingClientRect();
+        const lastRow = menu._row;
+        menu.style.top = `${rowRect.top}px`;
+        menu._row = row;
+        if (lastRow) {
+            lastRow.classList.remove(EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD);
+        }
+    }
+}
+
 const theDropDown = new DropDown();
+const theContextMenu = new ContextMenu();

@@ -60,8 +60,11 @@ const AsnaDataAttrName = {
     SIGNATURE_INTERNAL_NAME: 'data-asna-signature-name', // (internal and volatile)
 
     // Message related
-    SUBFILE_MSG_TEXT: 'data-asna-msg-text', // ** Experimental (see Case 20807: Message Subfile Errors have no way to "Reset" the error)
-    VOLATILE_MSG: 'data-asna-volatile-msg', // ** Experimental (see Case 21498: Unify Displaypage Message Presentation)
+    VOLATILE_MSG: 'data-asna-volatile-msg',
+
+    // Context menus
+    RECORD_CONTEXT_MENUS: 'data-asna-context-menus',    // Excludes subfile controller record.
+    CONTEXT_MENU:  'data-asna-content-menu',
 
     // Misc
     AUTO_POSTBACK: 'data-asna-autopostback',
