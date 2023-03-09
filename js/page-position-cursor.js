@@ -22,9 +22,16 @@ class PositionCursor {
         const inRow = PositionCursor.gridElements(rowEl);
         let firstInput = null;
         for (let i = 0, l = inRow.length; i < l; i++) {
-            const candidate = inRow[i];
+            let candidate = inRow[i];
             if (!PositionCursor.isInputCapable(candidate)) {
-                continue;
+                if (candidate.tagName !== 'SPAN') {
+                    continue;
+                }
+                const candidates = candidate.querySelectorAll('input,select,textarea'); // Candidate may be wrapped (i.e. date-field)
+                if (!candidates.length) {
+                    continue;
+                }
+                candidate = candidates[0];
             }
             if (!firstInput) {
                 firstInput = candidate;
