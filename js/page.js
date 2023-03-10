@@ -289,19 +289,24 @@ class Page {
     }
 
     handleWindowResizeEvent() {
-        const form = this.getForm();
-        const main = form.querySelector(MAIN_SELECTOR);
+        const main = DdsWindow.setVarBackgroundPosition();
         if (main) {
-            DdsWindow.setVarBackgroundPosition();
+            ContextMenu.hideMenus(main);
         }
     }
 
     handleMainPanelScrollEvent(event) {
-        DdsWindow.setVarBackgroundPosition();
+        const main = DdsWindow.setVarBackgroundPosition();
+        if (main) {
+            ContextMenu.hideMenus(main);
+        }
     }
 
     handleDocScrollEvent(event) {
-        DdsWindow.setVarBackgroundPosition();
+        const main = DdsWindow.setVarBackgroundPosition();
+        if (main) {
+            ContextMenu.hideMenus(main);
+        }
     }
 
     handleAjaxGetRecordsResponseEvent(res) {

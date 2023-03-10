@@ -494,16 +494,22 @@ body {
 
 \*-------------------------------------------*/
 
-.dds-menu-anchor {
+.dds-menu-popup {
+    position: absolute;
     display: block;
     text-align: center;
+    padding: 0;
+}
+
+.dds-menu-anchor-button, .dds-menu-placeholder {
+    display: block;
+    padding-left: 0.25em;
+    padding-right: 0.25em;
     border-width: 0px;
-    padding: 0 0.25em 0 0.25em;
     cursor: pointer;
 }
 
 .dds-menu {
-    display: none;
     background: white;
     border-radius: 0.5em;
     border: 1px solid #dedede;

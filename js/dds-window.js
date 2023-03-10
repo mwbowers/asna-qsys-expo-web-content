@@ -380,7 +380,9 @@ class DdsWindow {
             if (cssVarRoot && mainRect) {
                 cssVarRoot.setProperty(VAR_WIN_BKGND_POSITION, `${mainRect.left}px ${mainRect.top}px`);
             }
+            return main;
         }
+        return null;
     }
 
     setVarBackgroundSize(main,size) {
