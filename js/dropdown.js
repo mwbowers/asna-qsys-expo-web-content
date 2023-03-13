@@ -258,6 +258,7 @@ class ContextMenu {
     }
 
     static doActionDescendant(ancestorEl, menuOption) {
+        if (!ancestorEl) { return; }
         let virtRowCol = menuOption.vRowCol;
         if (menuOption.focusField) {
             const inputs = ancestorEl.querySelectorAll('input[name],select[name],textarea[name]:not([type="hidden"])');
@@ -328,9 +329,9 @@ class ContextMenu {
                     if (recordsContainer) {
                         SubfileController.setCurrentSelection(recordsContainer, row, true);
                     }
+                    ContextMenu.hidePopupMenus(row);
                 }
 
-                ContextMenu.hidePopupMenus(row);
                 const menuPopup = button.querySelector('div.dds-menu-popup');
                 if (!menuPopup) {
                     const rect = ph.getBoundingClientRect();
@@ -349,17 +350,31 @@ class ContextMenu {
     }
 
     static getClosestRow(ph) {
-        let row = ph.parentElement;
-        if (row.tagName === 'TD') {
-            row = row.closest('tr');
+        let rowCandidate = ph.parentElement;
+        if (rowCandidate.tagName === 'TD') {
+            rowCandidate = rowCandidate.closest('tr');
         }
-        return row;
+        if (!rowCandidate) { return null; }
+
+        const container = ContextMenu.getClosestRecordContainer(rowCandidate);
+        if (container) {
+            const range = DdsGrid.getRowRange(container);
+            if (range && range.length === 2) {
+                return rowCandidate;
+            }
+        }
+
+        return null;
     }
 
     static getClosestRecordContainer(row) {
         let container;
         if (row.tagName === 'TR') {
-            container = row.closest('tbody');
+            const tbody = row.closest('tbody');
+            if (!tbody) { return null; }
+            const table = tbody.parentElement;
+            if (!table || table.tagName !== 'TABLE') { return null; }
+            container = table.closest('div[data-asna-row]');
         }
         else {
             container = row.closest('div[data-asna-row]');
@@ -406,6 +421,10 @@ class ContextMenu {
 
                     if (button._row) {
                         ContextMenu.doActionDescendant(button._row, menuOption);
+                    }
+                    else {
+                        const nonSubfileRow = nav.closest('div[data-asna-row]');
+                        ContextMenu.doActionDescendant(nonSubfileRow, menuOption);
                     }
                 });
             }
