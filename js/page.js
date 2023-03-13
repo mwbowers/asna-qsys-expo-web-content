@@ -42,6 +42,7 @@ class Page {
         this.handleOnFocusEvent = this.handleOnFocusEvent.bind(this);
         this.handleWindowResizeEvent = this.handleWindowResizeEvent.bind(this);
         this.handleMainPanelScrollEvent = this.handleMainPanelScrollEvent.bind(this);
+        this.handleMainPanelClickEvent = this.handleMainPanelClickEvent.bind(this);
         this.handleDocScrollEvent = this.handleDocScrollEvent.bind(this);
         this.handleAjaxGetRecordsResponseEvent = this.handleAjaxGetRecordsResponseEvent.bind(this);
         this.handleAjaxGetRecordsErrorEvent = this.handleAjaxGetRecordsErrorEvent.bind(this);
@@ -143,7 +144,9 @@ class Page {
         }
         this.initIcons(sflEndIcons);
         ContextMenu.initNonSubfileMenus(main);
-        ContextMenu.prepare(main);
+        if (ContextMenu.prepare(main)) {
+            main.addEventListener('click', this.handleMainPanelClickEvent, false);
+        }
     }
 
     static setupAutoPostback(form, aidKeyBitmap) {
@@ -441,6 +444,13 @@ class Page {
     handleAjaxGetRecordsErrorEvent(error) {
         this.suspendAsyncPost = false;
         console.log(`Get records Ajax error: ${error}`);
+    }
+
+    handleMainPanelClickEvent(event) {
+        const main = (this.getForm()).querySelector(MAIN_SELECTOR);
+        if (main) {
+            ContextMenu.hideMenus(main);
+        }
     }
 
     getForm() {

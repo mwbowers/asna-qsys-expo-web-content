@@ -215,7 +215,7 @@ class ContextMenu {
     }
 
     prepare(main) {
-        if (!main) { return; }
+        if (!main) { return 0; }
         for (let i = 0, l = Object.keys(this.menusByRecord).length; i < l; i++) {
             const recordName = Object.keys(this.menusByRecord)[i];
             const recordMenus = this.menusByRecord[recordName];
@@ -223,6 +223,8 @@ class ContextMenu {
                 ContextMenu.preparePlaceHolder(main, recordName, menu);
             });
         }
+
+        return this.count;
     }
 
     hideMenus(root) {
@@ -258,7 +260,7 @@ class ContextMenu {
     static doActionDescendant(ancestorEl, menuOption) {
         let virtRowCol = menuOption.vRowCol;
         if (menuOption.focusField) {
-            const inputs = ancestorEl.querySelectorAll('input[name]:not([type="hidden"])');
+            const inputs = ancestorEl.querySelectorAll('input[name],select[name],textarea[name]:not([type="hidden"])');
             if (inputs) {
                 let inputName = '';
                 inputs.forEach((input) => {
@@ -292,8 +294,8 @@ class ContextMenu {
 
         placeHolders.forEach((ph) => {
             if (!result) {
-                const gridCol = ph.style.gridColumnStart;
-                if (gridCol && parseInt(gridCol, 10) === menuData.col) {
+                const menuID = ph.getAttribute(AsnaDataAttrName.CONTEXT_MENU);
+                if (menuID === menuData.uniqueName) {
                     result = ph;
                 }
             }
@@ -312,13 +314,17 @@ class ContextMenu {
         button._menu = menuData;
 
         button.addEventListener('click', (e) => {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
             if (button._menu && button._menu._ph) {
                 const menuData = button._menu;
                 const ph = menuData._ph;
-                const row = ph.parentElement;
+                const row = ContextMenu.getClosestRow(ph);
+
                 if (row) {
                     button._row = row;
-                    const recordsContainer = row.closest('div[data-asna-row]');
+                    const recordsContainer = ContextMenu.getClosestRecordContainer(row);
                     if (recordsContainer) {
                         SubfileController.setCurrentSelection(recordsContainer, row, true);
                     }
@@ -340,6 +346,25 @@ class ContextMenu {
         });
 
         ph.appendChild(button);
+    }
+
+    static getClosestRow(ph) {
+        let row = ph.parentElement;
+        if (row.tagName === 'TD') {
+            row = row.closest('tr');
+        }
+        return row;
+    }
+
+    static getClosestRecordContainer(row) {
+        let container;
+        if (row.tagName === 'TR') {
+            container = row.closest('tbody');
+        }
+        else {
+            container = row.closest('div[data-asna-row]');
+        }
+        return container;
     }
 
     static createPopup(button,left, top, menuData) {
@@ -391,7 +416,7 @@ class ContextMenu {
     }
 
     static moveToSflRow(row, lastPh) {
-        const lastRow = lastPh.parentElement;
+        const lastRow = ContextMenu.getClosestRow(lastPh);
         if (!lastRow || lastRow === row) { return; }
 
         lastRow.classList.remove(EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD);
