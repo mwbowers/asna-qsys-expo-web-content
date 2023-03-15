@@ -167,8 +167,8 @@ class Page {
                 if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA") {
                     el.addEventListener('input', (event) => {
                         const target = event.target;
-                        if (maxLen <= 1 || !(typeof target.value === 'string')) { window.asnaExpo.page.pushKey(key); }
-                        if (typeof target.value === 'string' && target.value.length == maxLen) {
+                        if ((maxLen <= 1 || !(typeof target.value === 'string')) ||
+                            (typeof target.value === 'string' && target.value.length == maxLen)) {
                             window.asnaExpo.page.pushKey(key);
                         }
                     });
