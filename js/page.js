@@ -251,7 +251,7 @@ class Page {
         }
     }
 
-    handlePushKeyOnClickEvent(event, keyToPush, focusElement, fieldValue, virtualRowCol) {
+    handlePushKeyOnClickEvent(el, event, keyToPush, focusElName, fieldValue, virtualRowCol) {
         if (this.suspendAsyncPost) {
             return;
         }
@@ -273,7 +273,14 @@ class Page {
             }
         }
 
-        this.pushKey(keyToPush, focusElement, fieldValue, virtualRowCol);
+        if (focusElName === '*PREVIOUS') {
+            const focusEl = PositionCursor.resolvePrevInputSibling(el);
+            if (focusEl) {
+                focusElName = focusEl.getAttribute('name');
+            }
+        }
+
+        this.pushKey(keyToPush, focusElName, fieldValue, virtualRowCol);
     }
 
     handleOnFocusEvent(element) {
@@ -457,18 +464,13 @@ class Page {
         return this.formId ? document.forms[this.formId] : document.forms[0];
     }
 
-    getFirstElementByName(name) {
-        const elements = document.getElementsByName(name);
-        return elements.length > 0 ? elements[0] : null;
-    }
-
     pushKey(aidKeyToPush, focusElementName, fieldValue, virtualRowCol) {
         this.suspendAsyncPost = true;
 
-        let form = this.getForm();
+        const form = this.getForm();
 
         if (focusElementName) {
-            const focusElement = this.getFirstElementByName(focusElementName);
+            const focusElement = form[focusElementName];
             if (focusElement) {
                 FeedbackArea.updateSubfileCursorRrn(focusElement);
                 FeedbackArea.updateElementFeedback(form, focusElement, DdsWindow.parseWinSpec());
@@ -561,7 +563,7 @@ class Page {
             if (encPushKeyParms) {
                 const pushKeyParms = JSON.parse(Base64.decode(encPushKeyParms));
                 el.addEventListener('click', (event) => {
-                    this.handlePushKeyOnClickEvent(event, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
+                    this.handlePushKeyOnClickEvent(el, event, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
                 });
                 el.classList.add('dds-clickable');
                 el.removeAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);

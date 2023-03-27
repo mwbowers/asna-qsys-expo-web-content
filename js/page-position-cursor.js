@@ -307,5 +307,25 @@ class PositionCursor {
 
         return result;
     }
+
+    static resolvePrevInputSibling(el) {
+        if (el.getAttribute('role') === 'button' && el.parentElement && el.parentElement.tagName === 'SPAN') { // DdsButton Icon
+            el = el.parentElement;
+        }
+        do {
+            el = el.previousElementSibling;
+            if (PositionCursor.isInputCapable(el)) {
+                return el;
+            }
+            if (el.tagName === 'SPAN') { // Candidate may be wrapped (i.e. date-field)
+                const candidates = candidate.querySelectorAll('input,select,textarea');
+                if (candidates.length) {
+                    return candidates[0];
+                }
+            }
+        } while (el);
+
+        return null;
+    }
 }
 
