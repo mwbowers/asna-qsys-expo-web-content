@@ -196,6 +196,10 @@ body {
     padding-bottom: 0;
 }
 
+.dds-subfile-record { /* Make width tight to the width of each Row grid. */
+   width: min-content;
+}
+
 /*-------------------------------------------*\
     DDS field related styles.
 
