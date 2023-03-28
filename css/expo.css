@@ -563,6 +563,31 @@ body {
 }
 
 /*-------------------------------------------*\
+    Fake Data
+
+\*-------------------------------------------*/
+.rendering-fake-data {
+    width: 100%;
+    background-color: orange;
+    color: mintcream;
+    font-size: larger;
+    text-align: center;
+    padding: 10px;
+}
+
+#rendering-fake-data-close {
+    float: right;
+    margin-right: 20px;
+    height: 1.2em;
+    width: 1.2em;
+    cursor: pointer;
+}
+
+div:has(> input#rendering-fake-data-close:checked) {
+    display: none;
+}
+
+/*-------------------------------------------*\
     Synon Escape
 
 \*-------------------------------------------*/
