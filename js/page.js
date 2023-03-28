@@ -470,8 +470,9 @@ class Page {
         const form = this.getForm();
 
         if (focusElementName) {
-            const focusElement = form[focusElementName];
-            if (focusElement) {
+            const focusElements = form[focusElementName];
+            if (focusElements) {
+                const focusElement = focusElements.length > 0 ? focusElements[0] : focusElements;
                 FeedbackArea.updateSubfileCursorRrn(focusElement);
                 FeedbackArea.updateElementFeedback(form, focusElement, DdsWindow.parseWinSpec());
                 if (fieldValue) {
