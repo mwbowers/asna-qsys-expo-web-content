@@ -568,23 +568,26 @@ body {
 \*-------------------------------------------*/
 .rendering-fake-data {
     width: 100%;
-    background-color: orange;
+    background-color: #FFC048;
     color: mintcream;
     font-size: larger;
     text-align: center;
-    padding: 10px;
+    padding: 0.5em;
+}
+
+#rendering-fake-data-close-x {
+    float: right;
+    margin-right: 2em;
+    font-size: medium;
 }
 
 #rendering-fake-data-close {
     float: right;
-    margin-right: 20px;
-    height: 1.2em;
-    width: 1.2em;
+    margin-right: -1.5em;
+    height: 1.5em;
+    width: 1.5em;
     cursor: pointer;
-}
-
-div:has(> input#rendering-fake-data-close:checked) {
-    display: none;
+    opacity: 0.0;
 }
 
 /*-------------------------------------------*\
