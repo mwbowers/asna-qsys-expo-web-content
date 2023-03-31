@@ -590,6 +590,10 @@ body {
     opacity: 0.0;
 }
 
+div:has(> input#rendering-fake-data-close:checked) {
+    display: none;
+}
+
 /*-------------------------------------------*\
     Synon Escape
 
