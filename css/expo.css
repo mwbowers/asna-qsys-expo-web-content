@@ -255,15 +255,47 @@ body {
 }
 
 /*-------------------------------------------*\
+    ENTFLDATR (Entry Field Attribute) support
+
+\*-------------------------------------------*/
+.entry-field-attr, .blue-entry-field-attr, .green-entry-field-attr, .pink-entry-field-attr, .red-entry-field-attr, .turquoise-entry-field-attr, .yellow-entry-field-attr {
+    font-weight: bolder; /* Hi intensity */
+    color: aqua          /* WHT */
+}
+
+.blue-entry-field-attr {
+    color: darkblue /* BLU */
+}
+
+.green-entry-field-attr {
+    color: darkgreen /* GRN */
+}
+
+.pink-entry-field-attr {
+    color: hotpink /* PNK */
+}
+
+.red-entry-field-attr {
+    color: darkred /* RED */
+}
+
+.turquoise-entry-field-attr {
+    color: turquoise /* TRK */
+}
+
+.yellow-entry-field-attr {
+    color: darkgoldenrod /* YLW */
+}
+
+/*-------------------------------------------*\
     DDS Signature
 
 \*-------------------------------------------*/
-
 .dds-signature-container {
     position: relative;
-    width: 95%; 
+    width: 95%;
     margin-left: 2%;
-    border:1px dotted #C0C0C0;
+    border: 1px dotted #C0C0C0;
     -webkit-border-radius: 6px;
 }
 
