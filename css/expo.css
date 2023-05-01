@@ -64,14 +64,14 @@
     flex: 0 1 auto;
     align-self: auto;
     background-color: var(--activekey-bar-background);
-    position:sticky; /* Note: the left:0 or top:0 or right:0 or bottom:0 is set by JavaScript */
+    position: sticky; /* Note: the left:0 or top:0 or right:0 or bottom:0 is set by JavaScript */
 }
 
 .dds-two-panel-item:nth-child(2) {
     order: 0;
     flex: 3 1 auto;
     align-self: auto;
-    overflow:auto;
+    overflow: auto;
 }
 
 .dds-activekey-horizontal-bar, .dds-activekey-vertical-bar {
@@ -87,14 +87,14 @@
 .dds-activekey-vertical-bar {
     font-size: calc( var(--body-font-size) * 0.7 );
 }
- 
-.dds-activekey-horizontal-bar a, .dds-activekey-vertical-bar a {
-    display: block;
-    color: var(--activekey-bar-items-text-color);
-    padding-top: var(--activekey-bar-items-padding-top-or-bottom);
-    padding-bottom: var(--activekey-bar-items-padding-top-or-bottom);
-    text-decoration: none;
-}
+
+    .dds-activekey-horizontal-bar a, .dds-activekey-vertical-bar a {
+        display: block;
+        color: var(--activekey-bar-items-text-color);
+        padding-top: var(--activekey-bar-items-padding-top-or-bottom);
+        padding-bottom: var(--activekey-bar-items-padding-top-or-bottom);
+        text-decoration: none;
+    }
 
 .dds-activekey-horizontal-bar a {
     float: left;
@@ -109,10 +109,10 @@
     white-space: nowrap;
 }
 
-.dds-activekey-horizontal-bar a:hover, .dds-activekey-vertical-bar a:hover {
-    background: var(--activekey-bar-hover-background);
-    color: var(--activekey-bar-hover-text-color);
-}
+    .dds-activekey-horizontal-bar a:hover, .dds-activekey-vertical-bar a:hover {
+        background: var(--activekey-bar-hover-background);
+        color: var(--activekey-bar-hover-text-color);
+    }
 
 .display-element-uninitialized {
     visibility: hidden;
@@ -197,7 +197,7 @@ body {
 }
 
 .dds-subfile-record { /* Make width tight to the width of each Row grid. */
-   width: min-content;
+    width: min-content;
 }
 
 /*-------------------------------------------*\
@@ -258,32 +258,32 @@ body {
     ENTFLDATR (Entry Field Attribute) support
 
 \*-------------------------------------------*/
-.entry-field-attr, .blue-entry-field-attr, .green-entry-field-attr, .pink-entry-field-attr, .red-entry-field-attr, .turquoise-entry-field-attr, .yellow-entry-field-attr {
-    font-weight: bolder; /* Hi intensity */
-    color: aqua          /* WHT */
+.entry-field-attr:focus, .blue-entry-field-attr:focus, .green-entry-field-attr:focus, .pink-entry-field-attr:focus, .red-entry-field-attr:focus, .turquoise-entry-field-attr:focus, .yellow-entry-field-attr:focus {
+    font-weight: 600 !important; /* Hi intensity */
+    color: aqua /* WHT */
 }
 
-.blue-entry-field-attr {
+.blue-entry-field-attr:focus {
     color: darkblue /* BLU */
 }
 
-.green-entry-field-attr {
+.green-entry-field-attr:focus {
     color: darkgreen /* GRN */
 }
 
-.pink-entry-field-attr {
+.pink-entry-field-attr:focus {
     color: hotpink /* PNK */
 }
 
-.red-entry-field-attr {
+.red-entry-field-attr:focus {
     color: darkred /* RED */
 }
 
-.turquoise-entry-field-attr {
+.turquoise-entry-field-attr:focus {
     color: turquoise /* TRK */
 }
 
-.yellow-entry-field-attr {
+.yellow-entry-field-attr:focus {
     color: darkgoldenrod /* YLW */
 }
 
@@ -398,8 +398,8 @@ body {
 .dds-window-popup-record-container {
     background: var(--popup-background);
     width: 100%;
-    height:100%;
-    text-align:left;
+    height: 100%;
+    text-align: left;
 }
 
 .dds-window-header {
@@ -463,34 +463,34 @@ body {
     border-spacing: 0px; /* Similar to border-collapse: collapse (collapse has issue with sticky headers)*/
 }
 
-.dds-table td {
-    font-size: calc( var(--body-font-size) * 0.75 );
-    padding: 2px;
-    vertical-align: baseline;
-    border: 1px solid lightgray;
-}
+    .dds-table td {
+        font-size: calc( var(--body-font-size) * 0.75 );
+        padding: 2px;
+        vertical-align: baseline;
+        border: 1px solid lightgray;
+    }
 
-.dds-table th {
-    font-size: calc( var(--body-font-size) * 0.8 );
-    font-weight: normal;
-    padding: 4px;
-    color: blue;
-    border: 1px solid lightgray;
-    /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,e5e5e5+100;White+3D */
-    background: #ffffff; /* Old browsers */
-    background: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%); /* FF3.6-15 */
-    background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-}
+    .dds-table th {
+        font-size: calc( var(--body-font-size) * 0.8 );
+        font-weight: normal;
+        padding: 4px;
+        color: blue;
+        border: 1px solid lightgray;
+        /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,e5e5e5+100;White+3D */
+        background: #ffffff; /* Old browsers */
+        background: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    }
 
-.dds-table tbody {
-    background-color: whitesmoke;
-}
+    .dds-table tbody {
+        background-color: whitesmoke;
+    }
 
-.dds-table thead th {
-    position: sticky;
-    top: -1px;
-}
+    .dds-table thead th {
+        position: sticky;
+        top: -1px;
+    }
 
 /*-------------------------------------------*\
     Message Panel (server and client validation).
@@ -503,27 +503,27 @@ body {
     height: calc(1.2 * calc( var(--body-font-size) * 0.8 ));
 }
 
-.dds-message-panel ul {
-    list-style-type: none;
-    margin: 0;
-    margin-left: 1em;
-    font-size: calc( var(--body-font-size) * 0.8 );
-    padding: 0;
-}
+    .dds-message-panel ul {
+        list-style-type: none;
+        margin: 0;
+        margin-left: 1em;
+        font-size: calc( var(--body-font-size) * 0.8 );
+        padding: 0;
+    }
 
-.dds-message-panel:not(:empty) { /* When there are messages, the panel overlaps the last row on the Page (similar to 5250) */
-    position: relative;
-    background: beige;
-    bottom: var(--body-font-size);
-    height: calc( var(--body-font-size) * 0.8 );
-    border: var(--popup-border-width) solid;
-    border-radius: 5px;
-    border-color: orange;
-    border-width: medium;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    overflow: auto;
-}
+    .dds-message-panel:not(:empty) { /* When there are messages, the panel overlaps the last row on the Page (similar to 5250) */
+        position: relative;
+        background: beige;
+        bottom: var(--body-font-size);
+        height: calc( var(--body-font-size) * 0.8 );
+        border: var(--popup-border-width) solid;
+        border-radius: 5px;
+        border-color: orange;
+        border-width: medium;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        overflow: auto;
+    }
 
 /*-------------------------------------------*\
     DdsContextMenu
@@ -551,48 +551,48 @@ body {
     border: 1px solid #dedede;
 }
 
-.dds-menu > ul > li > button {
-    padding: 0.2rem 0.8rem;
-    width: 100%;
-    font-size: calc( var(--body-font-size) * 0.75 );
-    font-family: var(--body-font-family);
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    text-transform: none;
-    line-height: 1.15;
-    margin: 0;
-    overflow: visible;
-    border: 0;
-    text-align: left;
-    outline: none;
-    cursor: pointer;
-    background: transparent;
-}
+    .dds-menu > ul > li > button {
+        padding: 0.2rem 0.8rem;
+        width: 100%;
+        font-size: calc( var(--body-font-size) * 0.75 );
+        font-family: var(--body-font-family);
+        -webkit-appearance: button;
+        -moz-appearance: button;
+        text-transform: none;
+        line-height: 1.15;
+        margin: 0;
+        overflow: visible;
+        border: 0;
+        text-align: left;
+        outline: none;
+        cursor: pointer;
+        background: transparent;
+    }
 
-.dds-menu > ul {
-    list-style: none;
-    margin: 0;
-    padding: 0.5em;
-}
+    .dds-menu > ul {
+        list-style: none;
+        margin: 0;
+        padding: 0.5em;
+    }
 
-.dds-menu > ul > li {
-    padding: 0;
-}
+        .dds-menu > ul > li {
+            padding: 0;
+        }
 
-.dds-menu > ul > li:hover {
-    background-color: lightgray;
-    font-weight: 600;
-}
+            .dds-menu > ul > li:hover {
+                background-color: lightgray;
+                font-weight: 600;
+            }
 
 .dds-menu-divider {
     margin-top: -0.3em;
     height: 0.3em;
 }
 
-.dds-menu-divider > hr {
-    border-style: solid;
-    border-bottom-color: royalblue;
-}
+    .dds-menu-divider > hr {
+        border-style: solid;
+        border-bottom-color: royalblue;
+    }
 
 /*-------------------------------------------*\
     Fake Data
