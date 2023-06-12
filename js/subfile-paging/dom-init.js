@@ -71,11 +71,17 @@ class SubfileController {
                                 sflCtrlStore.fldDrop.foldLinesPerRecord = SubfileController.querySubfileFoldLinesPerRecord(recordsContainer);
 
                                 if (sflCtrlStore.sflEnd.showSubfileEnd) {
-                                    const isAtBottom = sflCtrlStore.sflEnd.isSufileEnd;
+                                    // According to IBM here https://www.ibm.com/docs/en/i/7.5?topic=80-sflend-subfile-end-keyword-display-files
+                                    //   The IBM® i operating system displays the plus sign as long as there are more records in the subfile to be displayed,
+                                    //   no matter how the option indicator is set.
+                                    //   When the last page of the subfile is displayed, the operating system displays the plus sign, if the indicator is off. 
+                                    //   It does not display the plus sign, if the indicator is on.
+                                    const showAtBottom = sflCtrlStore.sflRecords.isLastPage === "true" ? sflCtrlStore.sflEnd.isSufileEnd : false;
+
                                     const icon = SubfileController.addSubfileEndCue(
                                         recordsContainer,
-                                        isAtBottom,
-                                        isAtBottom ? sflCtrlStore.sflEnd.textOn : sflCtrlStore.sflEnd.textOff,
+                                        showAtBottom,
+                                        showAtBottom ? sflCtrlStore.sflEnd.textOn : sflCtrlStore.sflEnd.textOff,
                                         sflColRange
                                     );
                                     if (icon && icon.el && icon.iconParms && icon.iconParms.title) {
