@@ -80,7 +80,7 @@ class Page {
 
         DdsWindow.init(thisForm);
         const main = thisForm.querySelector(MAIN_SELECTOR);
-        const sflEndIcons = SubfileController.init(main, DdsWindow.activeWindowRecord !== null);
+        const sflEndIcons = SubfileController.init(main, this.handlePushKeyOnClickEvent);
         DdsGrid.completeGridRows(thisForm, DdsWindow.activeWindowRecord);
         if (sflEndIcons && sflEndIcons.length) {
             SubfileController.moveEmptyRowsBeforeSflEndRow(thisForm);
@@ -251,7 +251,7 @@ class Page {
         }
     }
 
-    handlePushKeyOnClickEvent(el, event, keyToPush, focusElName, fieldValue, virtualRowCol) {
+    handlePushKeyOnClickEvent(el, keyToPush, focusElName, fieldValue, virtualRowCol) {
         if (this.suspendAsyncPost) {
             return;
         }
@@ -419,7 +419,8 @@ class Page {
                 recordsContainer,
                 showAtBottom,
                 showAtBottom ? sflCtrlStore.sflEnd.textOn : sflCtrlStore.sflEnd.textOff,
-                sflColRange
+                sflColRange,
+                this.handlePushKeyOnClickEvent
             );
 
             let sflEndIcons = [];
@@ -563,8 +564,8 @@ class Page {
             const encPushKeyParms = el.getAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);
             if (encPushKeyParms) {
                 const pushKeyParms = JSON.parse(Base64.decode(encPushKeyParms));
-                el.addEventListener('click', (event) => {
-                    this.handlePushKeyOnClickEvent(el, event, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
+                el.addEventListener('click', () => {
+                    this.handlePushKeyOnClickEvent(el, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
                 });
                 el.classList.add('dds-clickable');
                 el.removeAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);

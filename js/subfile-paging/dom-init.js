@@ -34,7 +34,7 @@ const ICON_NAME_NO_MORE = 'ban-circle';
 
 class SubfileController {
 
-    static init(mainDiv) {
+    static init(mainDiv, sflEndClickAsPushKeyHandling) {
         let sflIcons = [];
         if (mainDiv) {
             const elements = mainDiv.querySelectorAll(`div[${AsnaDataAttrName.SFLC}]`);
@@ -82,7 +82,8 @@ class SubfileController {
                                         recordsContainer,
                                         showAtBottom,
                                         showAtBottom ? sflCtrlStore.sflEnd.textOn : sflCtrlStore.sflEnd.textOff,
-                                        sflColRange
+                                        sflColRange,
+                                        sflEndClickAsPushKeyHandling
                                     );
                                     if (icon && icon.el && icon.iconParms && icon.iconParms.title) {
                                         sflIcons.push(icon);
@@ -280,7 +281,7 @@ class SubfileController {
         // Subfile.setMousePos(row, lastMousePos); TO-DO
     }
 
-    static addSubfileEndCue(recordsContainer, isAtBottom, tooltipText, sflColRange) {
+    static addSubfileEndCue(recordsContainer, isAtBottom, tooltipText, sflColRange, sflEndClickAsPushKeyHandling) {
         const iconName = isAtBottom ? ICON_NAME_NO_MORE : ICON_NAME_MORE;
         const span = document.createElement('span');
         span.className = 'dds-cells-suitable-for-icons';
@@ -345,7 +346,9 @@ class SubfileController {
         }
 
         if (!isAtBottom) {
-            span.addEventListener('click', () => { window.asnaExpo.page.pushKey("PgDn") });
+            span.addEventListener('click', (el) => {
+                sflEndClickAsPushKeyHandling(el, 'PgDn')
+            });
         }
 
         return { el: span, iconParms: { awesomeFontId: iconName, color: '*class', title: tooltipText ? tooltipText: '' } };
