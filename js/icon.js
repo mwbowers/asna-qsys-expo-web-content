@@ -9,7 +9,7 @@ export { Icons, IconCache };
 
 import { AsnaDataAttrName } from '../js/asna-data-attr.js';
 import { Fetch } from '../js/ajax/ajax-fetch.js';
-import { Unique } from '../js/dom-events.js';
+import { Unique, Units } from '../js/dom-events.js';
 
 const AJAX_RESPOSE_TIMEOUT = 1 * 60 * 1000; // 1 minutes
 
@@ -93,7 +93,7 @@ class Icons {
             return;
         }
 
-        let width = Icons.calcColWidth() * 2;
+        let width = Icons.calcColWidth(div) * 2;
 
         let xOrigin = 0;
         let yOrigin = -256;
@@ -150,9 +150,9 @@ class Icons {
         div.appendChild(svg);
     }
 
-    static calcColWidth() {
-        let gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
-        return parseFloat(gridColWidth); // Remove 'px'
+    static calcColWidth(parent) {
+        const gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
+        return Units.toPixels(gridColWidth, parent);
     }
 }
 

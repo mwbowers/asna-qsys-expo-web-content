@@ -8,7 +8,7 @@
 export { thePage as Page };
 
 import { Kbd, AidKeyHelper, AidKeyMapIndex } from '../js/kbd.js';
-import { DomEvents } from '../js/dom-events.js';
+import { DomEvents, Units } from '../js/dom-events.js';
 import { FeedbackArea } from '../js/feedback-area.js';
 import { LetterSpacing } from '../js/letter-spacing.js';
 import { InvertFontColors } from '../js/invert-font-colors.js';
@@ -540,16 +540,13 @@ class Page {
 
     stretchConstantsText() {
         const elements = document.querySelectorAll(`[${AsnaDataAttrName.STRETCH_ME}]`);
-        let gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
-
-        gridColWidth = parseFloat(gridColWidth); // Remove 'px'
+        const gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
 
         for (let i = 0, l = elements.length; i < l; i++) {
             const span = elements[i];
-            // const stretch = span.getAttribute(AsnaDataAttrName.STRETCH_ME);
 
-            if (span.textContent) { //  && stretch) {
-                span.style.letterSpacing = LetterSpacing.computeForElement(span, gridColWidth);
+            if (span.textContent) {
+                span.style.letterSpacing = LetterSpacing.computeForElement(span, Units.toPixels(gridColWidth, span));
             }
             span.removeAttribute(AsnaDataAttrName.STRETCH_ME);
         }
