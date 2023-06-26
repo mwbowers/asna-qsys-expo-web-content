@@ -106,14 +106,25 @@ function cloneCSSStyle(nativeNode, clonedNode) {
         });
     }
 }
+
+const SUBST_CHAR    = '\x1A';
+const UNICODE_SUBST = '\uFFFD';
+const SUBST_REGEX = /\x1A/g;
+
 function cloneInputValue(nativeNode, clonedNode) {
-    if (nativeNode instanceof HTMLTextAreaElement) {
-        clonedNode.innerHTML = nativeNode.value;
+    if (nativeNode instanceof HTMLSpanElement && clonedNode.innerText.indexOf(SUBST_CHAR) >= 0) {
+        clonedNode.innerHTML = nativeNode.innerHTML.replace(SUBST_REGEX, UNICODE_SUBST);
     }
+
+    if (nativeNode instanceof HTMLTextAreaElement) {
+        clonedNode.innerHTML = nativeNode.value.replace(SUBST_REGEX, UNICODE_SUBST);
+    }
+
     if (nativeNode instanceof HTMLInputElement) {
-        clonedNode.setAttribute('value', nativeNode.value);
+        clonedNode.setAttribute('value', nativeNode.value.replace(SUBST_REGEX, UNICODE_SUBST));
     }
 }
+
 function cloneSelectValue(nativeNode, clonedNode) {
     if (nativeNode instanceof HTMLSelectElement) {
         const clonedSelect = clonedNode;
