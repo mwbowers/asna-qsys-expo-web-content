@@ -112,7 +112,7 @@ const UNICODE_SUBST = '\uFFFD';
 const SUBST_REGEX = /\x1A/g;
 
 function cloneInputValue(nativeNode, clonedNode) {
-    if (nativeNode instanceof HTMLSpanElement && clonedNode.innerText.indexOf(SUBST_CHAR) >= 0) {
+    if (nativeNode instanceof HTMLSpanElement && nativeNode.innerText && nativeNode.innerText.indexOf(SUBST_CHAR) >= 0) {
         clonedNode.innerHTML = nativeNode.innerHTML.replace(SUBST_REGEX, UNICODE_SUBST);
     }
 
