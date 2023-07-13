@@ -66,6 +66,9 @@ const AsnaDataAttrName = {
     RECORD_CONTEXT_MENUS: 'data-asna-context-menus',    // Excludes subfile controller record.
     CONTEXT_MENU:  'data-asna-content-menu',
 
+    // DecRangeField
+    DEC_RANGE_OPTIONS: 'data-asna-decrange-options',
+
     // Misc
     AUTO_POSTBACK: 'data-asna-autopostback',
     CHECK_MANDATORY: 'data-asna-check-mandatory',

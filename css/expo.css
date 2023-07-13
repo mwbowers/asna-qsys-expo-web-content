@@ -589,10 +589,129 @@ body {
     height: 0.3em;
 }
 
-    .dds-menu-divider > hr {
-        border-style: solid;
-        border-bottom-color: royalblue;
-    }
+.dds-menu-divider > hr {
+    border-style: solid;
+    border-bottom-color: royalblue;
+}
+
+/*-------------------------------------------*\
+    DdsDecRangeField
+
+\*-------------------------------------------*/
+.dds-dec-range-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between; /* align items horizontally  */
+    gap: 0.25em;
+}
+
+.dds-dec-range-button {
+    background-color: cornflowerblue;
+    border-radius: 2px;
+    margin: 0px;
+    color: white;
+    background: #2baee2;
+    border: 0px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.dds-dec-range-button-input {
+    text-align: center;
+    width: inherit;
+    outline: thin;
+}
+
+.dds-dec-range-slider {
+    -webkit-appearance: none;
+    border: 1px solid white;
+}
+
+.dds-dec-range-slider-input {
+    width: inherit;
+    outline: thin;
+}
+
+.dds-dec-range-slider::-webkit-slider-runnable-track {
+    width: 300px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+
+.dds-dec-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: goldenrod;
+    margin-top: -4px;
+}
+
+.dds-dec-range-slider:focus {
+    outline: none;
+}
+
+.dds-dec-range-slider:focus::-webkit-slider-runnable-track {
+    background: #ccc;
+}
+
+.dds-dec-range-slider::-moz-range-track {
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+
+.dds-dec-range-slider::-moz-range-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: goldenrod;
+}
+
+.dds-dec-range-slider:-moz-focusring {
+    outline: 1px solid white;
+    outline-offset: -1px;
+}
+
+.dds-dec-range-slider::-ms-track {
+    height: 5px;
+    background: transparent;
+    border-color: transparent;
+    border-width: 6px 0;
+    color: transparent;
+}
+
+.dds-dec-range-slider::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+
+.dds-dec-range-slider::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+
+.dds-dec-range-slider::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: goldenrod;
+}
+
+.dds-dec-range-slider:focus::-ms-fill-lower {
+    background: #888;
+}
+
+.dds-dec-range-slider:focus::-ms-fill-upper {
+    background: #ccc;
+}
+
 
 /*-------------------------------------------*\
     Fake Data

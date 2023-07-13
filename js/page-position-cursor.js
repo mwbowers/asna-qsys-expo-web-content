@@ -93,7 +93,7 @@ class PositionCursor {
         let found = false;
         for (let i = 0; i < inputCount; i++) {
             const input = form[i];
-            if (input.type && input.type.toUpperCase() === 'HIDDEN') {
+            if (input.type && input.type.toUpperCase() === 'HIDDEN' || input.tagName === 'BUTTON') {
                 continue;
             }
             input.focus();
@@ -289,7 +289,7 @@ class PositionCursor {
             range.moveStart('character', toPos);
             range.select();
         }
-        else if (input.setSelectionRange) { // Chrome, Firefox
+        else if (input.setSelectionRange && input.type !== 'range') { // Chrome, Firefox
             input.setSelectionRange(fromPos,toPos);
         }
     }
