@@ -8,7 +8,7 @@
 export { thePage as Page };
 
 import { Kbd, AidKeyHelper, AidKeyMapIndex } from '../js/kbd.js';
-import { DomEvents } from '../js/dom-events.js';
+import { DomEvents, Units } from '../js/dom-events.js';
 import { FeedbackArea } from '../js/feedback-area.js';
 import { LetterSpacing } from '../js/letter-spacing.js';
 import { InvertFontColors } from '../js/invert-font-colors.js';
@@ -80,7 +80,7 @@ class Page {
 
         DdsWindow.init(thisForm);
         const main = thisForm.querySelector(MAIN_SELECTOR);
-        const sflEndIcons = SubfileController.init(main, DdsWindow.activeWindowRecord !== null);
+        const sflEndIcons = SubfileController.init(main, this.handlePushKeyOnClickEvent);
         DdsGrid.completeGridRows(thisForm, DdsWindow.activeWindowRecord);
         if (sflEndIcons && sflEndIcons.length) {
             SubfileController.moveEmptyRowsBeforeSflEndRow(thisForm);
@@ -252,7 +252,7 @@ class Page {
         }
     }
 
-    handlePushKeyOnClickEvent(el, event, keyToPush, focusElName, fieldValue, virtualRowCol) {
+    handlePushKeyOnClickEvent(el, keyToPush, focusElName, fieldValue, virtualRowCol) {
         if (this.suspendAsyncPost) {
             return;
         }
@@ -420,7 +420,8 @@ class Page {
                 recordsContainer,
                 showAtBottom,
                 showAtBottom ? sflCtrlStore.sflEnd.textOn : sflCtrlStore.sflEnd.textOff,
-                sflColRange
+                sflColRange,
+                this.handlePushKeyOnClickEvent
             );
 
             let sflEndIcons = [];
@@ -540,20 +541,16 @@ class Page {
 
     stretchConstantsText() {
         const elements = document.querySelectorAll(`[${AsnaDataAttrName.STRETCH_ME}]`);
-        let gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
-
-        gridColWidth = parseFloat(gridColWidth); // Remove 'px'
+        const gridColWidth = getComputedStyle(document.documentElement).getPropertyValue('--dds-grid-col-width');
 
         for (let i = 0, l = elements.length; i < l; i++) {
             const span = elements[i];
-            // const stretch = span.getAttribute(AsnaDataAttrName.STRETCH_ME);
 
-            if (span.textContent) { //  && stretch) {
-                span.style.letterSpacing = LetterSpacing.computeForElement(span, gridColWidth);
+            if (span.textContent) {
+                span.style.letterSpacing = LetterSpacing.computeForElement(span, Units.toPixels(gridColWidth, span));
             }
             span.removeAttribute(AsnaDataAttrName.STRETCH_ME);
         }
-
     }
 
     addOnClickPushKeyEventListener() {
@@ -564,8 +561,8 @@ class Page {
             const encPushKeyParms = el.getAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);
             if (encPushKeyParms) {
                 const pushKeyParms = JSON.parse(Base64.decode(encPushKeyParms));
-                el.addEventListener('click', (event) => {
-                    this.handlePushKeyOnClickEvent(el, event, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
+                el.addEventListener('click', () => {
+                    this.handlePushKeyOnClickEvent(el, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
                 });
                 el.classList.add('dds-clickable');
                 el.removeAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);
