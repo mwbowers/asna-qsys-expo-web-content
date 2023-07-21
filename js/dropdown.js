@@ -508,6 +508,10 @@ class DecRange {
             inputDecField.value = options.numericValue;
         }
 
+        const pattern = input.getAttribute('pattern');
+        if (pattern) {
+            inputDecField.setAttribute('pattern', pattern);
+        }
 
         const btnPlus = document.createElement('button');
         btnPlus.innerText = '+';
@@ -571,6 +575,11 @@ class DecRange {
                 inputDecField.value = options.numericValue;
             }
 
+            const pattern = input.getAttribute('pattern');
+            if (pattern) {
+                inputDecField.setAttribute('pattern', pattern);
+            }
+
             if (options.readOnly) {
                 inputDecField.setAttribute('disabled', true);
             }
@@ -612,7 +621,7 @@ class DecRange {
 
         for (let i = 0, l = source.attributes.length; i < l; i++) {
             const attr = source.attributes[i];
-            if (attr.name && (attr.name === 'name' || attr.name === 'value') ) {
+            if (attr.name && (attr.name === 'name' || attr.name === 'value' || attr.name === 'pattern') ) {
                 continue;
             }
 
@@ -643,20 +652,34 @@ class DecRange {
         try {
             const min = input.getAttribute('min');
             const max = input.getAttribute('max');
-            const amount = parseFloat(step);
+            const fMin = min ? parseFloat(min) : NaN;
+            const fMax = max ? parseFloat(max) : NaN;
+            const fStep = parseFloat(step);
+            let newVal = NaN;
 
             let current = parseFloat(input.value);
-            let newVal = current + (dir > 0 ? step : -step);
+            if (!isNaN(current) && !isNaN(fStep)) {
+                newVal = current + (dir > 0 ? fStep : -fStep);
 
-            if (min) {
-                newVal = Math.max(newVal, parseFloat(min));
+                if (!isNaN(fMin)) {
+                    newVal = Math.max(newVal, fMin);
+                }
+                else if (!isNaN(fMax)) {
+                    newVal = Math.min(newVal, fMax);
+                }
+            }
+            else {
+                if (!isNaN(fMin)) {
+                    newVal = fMin;
+                }
+                else if (!isNaN(fMax)) {
+                    newVal = fMax;
+                }
             }
 
-            if (max) {
-                newVal = Math.min(newVal, parseFloat(max));
+            if (!isNaN(newVal)) {
+                input.value = newVal;
             }
-
-            input.value = newVal;
         }
         catch (err) { }
     }
