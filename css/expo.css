@@ -614,6 +614,7 @@ body {
     border: 0px;
     text-decoration: none;
     font-weight: bold;
+    flex-basis: 10%;
 }
 
 .dds-dec-range-button-input {
@@ -625,11 +626,15 @@ body {
 .dds-dec-range-slider {
     -webkit-appearance: none;
     border: 1px solid white;
+    width: 100%;
+    background-color: var(--body-background);
+    border: 1px solid var(--body-background) !important;
 }
 
 .dds-dec-range-slider-input {
     width: inherit;
     outline: thin;
+    flex-basis: 25%;
 }
 
 .dds-dec-range-slider::-webkit-slider-runnable-track {
@@ -711,7 +716,6 @@ body {
 .dds-dec-range-slider:focus::-ms-fill-upper {
     background: #ccc;
 }
-
 
 /*-------------------------------------------*\
     Fake Data
