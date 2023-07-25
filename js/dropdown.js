@@ -461,6 +461,10 @@ class ContextMenu {
     }
 }
 
+const INPUT_ATTRIBUTES = [
+    'autocomplete', 'autofocus', 'inputmode', 'maxlength', 'minlength', 'name', 'pattern', 'placeholder', 'required', 'size', 'tabindex', 'title', 'value'
+];
+
 class DecRange {
     init(form) {
         const elements = form.querySelectorAll(`input[${AsnaDataAttrName.DEC_RANGE_OPTIONS}]`);
@@ -498,6 +502,8 @@ class DecRange {
         DecRange.initBtn(btnMinus, options.readOnly);
 
         const inputDecField = document.createElement('input');
+        DecRange.copyInputAttributes(inputDecField, input);
+
         inputDecField.type = 'text';
         inputDecField.className = 'dds-dec-range-button-input';
         if (options.name) {
@@ -564,6 +570,8 @@ class DecRange {
 
         if (options.showValue && options.showValue === 'l' || options.showValue === 'r') {
             const inputDecField = document.createElement('input');
+            DecRange.copyInputAttributes(inputDecField, input);
+
             inputDecField.type = 'text';
             inputDecField.className = 'dds-dec-range-slider-input';
 
@@ -621,11 +629,20 @@ class DecRange {
 
         for (let i = 0, l = source.attributes.length; i < l; i++) {
             const attr = source.attributes[i];
-            if (attr.name && (attr.name === 'name' || attr.name === 'value' || attr.name === 'pattern') ) {
-                continue;
+            if (attr.name && ! INPUT_ATTRIBUTES.includes(attr.name) ) {
+                target.setAttribute(attr.name, attr.value);
             }
+        }
+    }
 
-            target.setAttribute(attr.name, attr.value);
+    static copyInputAttributes(target, source) {
+        if (!source.attributes) { return; }
+
+        for (let i = 0, l = source.attributes.length; i < l; i++) {
+            const attr = source.attributes[i];
+            if (attr.name && INPUT_ATTRIBUTES.includes(attr.name)) {
+                target.setAttribute(attr.name, attr.value);
+            }
         }
     }
 
