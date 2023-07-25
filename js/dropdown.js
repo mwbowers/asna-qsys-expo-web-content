@@ -499,7 +499,7 @@ class DecRange {
 
         const btnMinus = document.createElement('button');
         btnMinus.innerText = '-';
-        DecRange.initBtn(btnMinus, options.readOnly);
+        DecRange.initBtn(btnMinus, input, options.readOnly);
 
         const inputDecField = document.createElement('input');
         DecRange.copyInputAttributes(inputDecField, input);
@@ -514,14 +514,9 @@ class DecRange {
             inputDecField.value = options.numericValue;
         }
 
-        const pattern = input.getAttribute('pattern');
-        if (pattern) {
-            inputDecField.setAttribute('pattern', pattern);
-        }
-
         const btnPlus = document.createElement('button');
         btnPlus.innerText = '+';
-        DecRange.initBtn(btnPlus, options.readOnly);
+        DecRange.initBtn(btnPlus, input, options.readOnly);
 
         if (options.readOnly) {
             inputDecField.setAttribute('disabled', true);
@@ -564,10 +559,16 @@ class DecRange {
         }
 
         if (options.max > options.min) {
-            slider.setAttribute("min", options.min);
-            slider.setAttribute("max", options.max);
+            slider.setAttribute('min', options.min);
+            slider.setAttribute('max', options.max);
         }
 
+        if (!options.readOnly) {
+            DecRange.copyTabIndexAttr(slider, input);
+        }
+        else {
+            slider.setAttribute('disabled', true);
+        }
         if (options.showValue && options.showValue === 'l' || options.showValue === 'r') {
             const inputDecField = document.createElement('input');
             DecRange.copyInputAttributes(inputDecField, input);
@@ -581,11 +582,6 @@ class DecRange {
 
             if (options.numericValue) {
                 inputDecField.value = options.numericValue;
-            }
-
-            const pattern = input.getAttribute('pattern');
-            if (pattern) {
-                inputDecField.setAttribute('pattern', pattern);
             }
 
             if (options.readOnly) {
@@ -646,12 +642,22 @@ class DecRange {
         }
     }
 
-    static initBtn(btn, readOnly) {
+    static copyTabIndexAttr(target, source) {
+        const tabIndex = source.getAttribute('tabindex');
+        if (tabIndex) {
+            target.setAttribute('tabindex', tabIndex);
+        }
+    }
+
+    static initBtn(btn, input, readOnly) {
         btn.className = 'dds-dec-range-button';
         btn.type = 'button';
 
         if (readOnly) {
             btn.setAttribute('disabled', true);
+        }
+        else {
+            DecRange.copyTabIndexAttr(btn, input);
         }
     }
 
