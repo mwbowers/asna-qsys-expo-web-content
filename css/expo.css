@@ -717,6 +717,38 @@ body {
     background: #ccc;
 }
 
+
+/*-------------------------------------------*\
+    Barcode proxy: used when https://github.com/asnaqsys/asna-qsys-expo-barcodes is not installed.
+
+\*-------------------------------------------*/
+.dds-field-barcode-proxy-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.25em;
+}
+
+.dds-field-barcode-proxy-button {
+    background-color: white;
+    cursor: pointer;
+    border-radius: 2px;
+    margin: 0px;
+    border: 0px;
+    text-decoration: none;
+    flex-basis: 10%;
+}
+
+.dds-field-barcode-proxy-input {
+    width: inherit;
+}
+
+.dds-field-barcode-proxy-button-image {
+    pointer-events: none;
+    background-color: white;
+    transform: scale(1.3);
+}
+
 /*-------------------------------------------*\
     Fake Data
 

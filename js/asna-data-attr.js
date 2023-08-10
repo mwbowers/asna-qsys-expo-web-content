@@ -69,6 +69,9 @@ const AsnaDataAttrName = {
     // DecRangeField
     DEC_RANGE_OPTIONS: 'data-asna-decrange-options',
 
+    // Barcode fields
+    DETECT_BARCODE: 'data-asna-barcode',
+
     // Misc
     AUTO_POSTBACK: 'data-asna-autopostback',
     CHECK_MANDATORY: 'data-asna-check-mandatory',

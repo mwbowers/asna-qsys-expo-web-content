@@ -14,7 +14,7 @@ import { LetterSpacing } from '../js/letter-spacing.js';
 import { InvertFontColors } from '../js/invert-font-colors.js';
 import { Calendar } from '../js/calendar/calendar.js';
 import { DdsGrid } from '../js/dds-grid.js';
-import { DropDown, ContextMenu, DecRange } from '../js/dropdown.js';
+import { DropDown, ContextMenu, DecRange, BarcodeProxy } from '../js/dropdown.js';
 import { Checkbox, RadioButtonGroup } from '../js/multiple-choice.js';
 import { WaitForResponseAnimation } from '../js/wait-response/wait-response-animation.js';
 import { NavigationMenu } from '../js/nav-menu.js';
@@ -92,6 +92,7 @@ class Page {
         this.initStandardCalendar();
         DropDown.initBoxes();
         DecRange.init(thisForm);
+        BarcodeProxy.init(thisForm);
         Checkbox.init(thisForm);
         RadioButtonGroup.init(thisForm);
         Signature.init(thisForm);

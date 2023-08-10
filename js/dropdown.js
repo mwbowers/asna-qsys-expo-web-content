@@ -8,6 +8,7 @@
 export { theDropDown as DropDown };
 export { theContextMenu as ContextMenu };
 export { theDecRange as DecRange };
+export { theBarcodeProxy as BarcodeProxy };
 
 import { AsnaDataAttrName } from './asna-data-attr.js';
 import { StringExt } from './string.js';
@@ -726,6 +727,113 @@ class DecRange {
     }
 }
 
+class BarcodeProxy {
+    init(form) {
+        const elements = form.querySelectorAll(`input[${AsnaDataAttrName.DETECT_BARCODE}]`);
+
+        for (let i = 0, l = elements.length; i < l; i++) {
+            const input = elements[i];
+            const encOptions = input.getAttribute(AsnaDataAttrName.DETECT_BARCODE);
+            let options = null;
+            if (encOptions) {
+                try {
+                    options = JSON.parse(Base64.decode(encOptions));
+                }
+                catch (ex) {
+                }
+            }
+            input.removeAttribute(AsnaDataAttrName.DETECT_BARCODE);
+            BarcodeProxy.createComponent(input, options);
+        }
+    }
+
+    static createComponent(input, options) {
+        const div = document.createElement('div');
+       BarcodeProxy.copyNonInputAttributes(div, input);
+        div.className = 'dds-field-barcode-proxy-container';
+
+        const btnScan = document.createElement('button');
+        btnScan.className = 'dds-field-barcode-proxy-button';
+        btnScan.type = 'button';
+
+        if (options && options.readOnly) {
+            btnScan.setAttribute('disabled', true);
+        }
+
+        btnScan.innerHTML = `
+<svg class="dds-field-barcode-proxy-button-image" xmlns="http://www.w3.org/2000/svg" width="19" height="18" stroke="#000" stroke-linecap="round" stroke-linejoin="round" fill="#fff" fill-rule="evenodd">
+    <path d="M.5001 2.5L.5.2501 3 .25M17.9999 2.5L18 .2501 15.5.25m-14.9999 15L.5 17.4999 3 17.5m12.75-.0001l2.2499.0001L18 15" fill="none" stroke-linejoin="miter" class="B C" stroke-linecap="square" stroke-width=".5"/>
+    <g fill="#000" class="B" stroke-linecap="square">
+        <path d="M3.00011 4.75001L3.0001 12.75" class="D" stroke-width="2"/>
+        <path d="M4.50011 4.25001L4.5001 13.25" stroke="#838383"/>
+        <path d="M5.25011 4.00001L5.2501 13.5" class="C" stroke-width=".5"/>
+        <path d="M7.50011 4.75001L7.5001 12.75" class="D" stroke-width="2"/>
+        <g class="C" stroke-width=".5">
+            <path d="M8.75011 4.00001L8.7501 13.5" stroke="#e0e0e0"/>
+            <path d="M9.75011 4.00001L9.7501 13.5" stroke="#c1c1c1"/>
+            <path d="M10.25011 4.00001L10.2501 13.5"/>
+        </g>
+        <path d="M11.50011 4.25001L11.5001 13.25" stroke="#838383"/>
+        <path d="M12.25011 4.00001L12.2501 13.5" class="C" stroke-width=".5"/>
+        <path d="M14.50011 4.75001L14.5001 12.75" class="D" stroke-width="2"/>
+        <g class="C" stroke-width=".5">
+            <path d="M15.75011 4.00001L15.7501 13.5" stroke="#e0e0e0"/>
+            <path d="M16.50011 4.00001L16.5001 13.5"/>
+        </g>
+    </g>
+    <path fill="red" d="M.5 8.7501h13.1595L17.5 8.75" stroke="red"/>
+</svg>`;
+
+        const inputField = document.createElement('input');
+        inputField.type = 'text';
+        inputField.className = 'dds-field-barcode-proxy-input';
+        BarcodeProxy.copyInputAttributes(inputField, input);
+
+        if (options && options.readOnly) {
+            inputField.setAttribute('disabled', true);
+        }
+        else {
+            btnScan._asna = { input: inputField };
+            btnScan.addEventListener('click', () => { alert('Scannig un-available. Application needs more components installed.'); });
+        }
+
+        div.appendChild(inputField);
+        div.appendChild(btnScan);
+
+        input.parentNode.replaceChild(div, input); // Note: input will be destroyed during DOM's garbage collection.
+    }
+
+    static copyNonInputAttributes(target, source) {
+        if (!source.attributes) { return; }
+
+        for (let i = 0, l = source.attributes.length; i < l; i++) {
+            const attr = source.attributes[i];
+            if (attr.name && !INPUT_ATTRIBUTES.includes(attr.name)) {
+                target.setAttribute(attr.name, attr.value);
+            }
+        }
+    }
+
+    static copyInputAttributes(target, source) {
+        if (!source.attributes) { return; }
+
+        for (let i = 0, l = source.attributes.length; i < l; i++) {
+            const attr = source.attributes[i];
+            if (attr.name && INPUT_ATTRIBUTES.includes(attr.name)) {
+                target.setAttribute(attr.name, attr.value);
+            }
+        }
+    }
+
+    static copyTabIndexAttr(target, source) {
+        const tabIndex = source.getAttribute('tabindex');
+        if (tabIndex) {
+            target.setAttribute('tabindex', tabIndex);
+        }
+    }
+}
+
 const theDropDown = new DropDown();
 const theContextMenu = new ContextMenu();
 const theDecRange = new DecRange();
+const theBarcodeProxy = new BarcodeProxy();
