@@ -42,10 +42,12 @@ class DdsGrid {
         let lastRow = null;
 
         let rowSpanCollection = [];
+        let exclEmptyRowList = [];
 
         for (let r = 0; r < records.length; r++) {
             const record = records[r];
             const recName = record.getAttribute(AsnaDataAttrName.RECORD);
+            const recExclEmptyRows = record.getAttribute(AsnaDataAttrName.EXCLUDE_EMPTY_ROWS);
             let isSubfile = false;
             let isFolded = false;
             if (recName) {
@@ -65,6 +67,10 @@ class DdsGrid {
                 continue;
             }
 
+            if (recExclEmptyRows) {
+                this.unionList(exclEmptyRowList, recExclEmptyRows);
+            }
+
             if (isSubfile && !isFolded) { // When Subfile is dropping fields, don't try to fill row gaps.
                 if (ddsRows.length > 0) {
                     const row = ddsRows[0];
@@ -76,7 +82,7 @@ class DdsGrid {
                             let emptyRowsBefore = sflFromRow - 1;
 
                             if (emptyRowsBefore > 0) {
-                                this.insertEmptyRows(emptyRowsBefore, row, 1);
+                                this.insertEmptyRows(emptyRowsBefore, row, 1, exclEmptyRowList);
                             }
                         }
 
@@ -97,7 +103,7 @@ class DdsGrid {
                 let emptyRowsBefore = rowVal - 1 - lastRowVal;
 
                 if (emptyRowsBefore > 0 && this.isValidRowNumber(row, rowVal)) {
-                    this.insertEmptyRows(emptyRowsBefore, row, lastRowVal + 1);
+                    this.insertEmptyRows(emptyRowsBefore, row, lastRowVal + 1, exclEmptyRowList);
                 }
 
                 if (range.length === 2) {
@@ -208,7 +214,7 @@ class DdsGrid {
             const existingRows = rows.length + emptyRows.length;
             const toAddCount = requestedRows - existingRows;
             if (toAddCount > 0) {
-                this.appendEmptyRows(toAddCount, recordsContainer, fromRow + existingRows)
+                this.appendEmptyRows(toAddCount, recordsContainer /*, fromRow + existingRows*/);
             }
         }
     }
@@ -325,17 +331,20 @@ class DdsGrid {
         return rowNumber >= fromRow && rowNumber <= toRow;
     }
 
-    insertEmptyRows(count, beforeEl, offset) {
+    insertEmptyRows(count, beforeEl, offset, excludeRowList) {
         const parent = beforeEl.parentElement;
 
         for (let i = 0; i < count; i++) {
-            parent.insertBefore(this.createEmptyDivGridRowStyle(i+offset), beforeEl);
+            const row = i + offset;
+            if (!excludeRowList.includes(row)) {
+                parent.insertBefore(this.createEmptyDivGridRowStyle(row), beforeEl);
+            }
         }
     }
 
-    appendEmptyRows(count, parent, offset) {
+    appendEmptyRows(count, parent) {
         for (let i = 0; i < count; i++) {
-            parent.appendChild(this.createEmptyDivGridRowStyle(/*i + offset*/));
+            parent.appendChild(this.createEmptyDivGridRowStyle());
         }
     }
 
@@ -492,6 +501,30 @@ class DdsGrid {
         parentEl.removeChild(newChild);
 
         return rect.width;
+    }
+
+    unionList(c, exclRowAttr) {
+        const list = exclRowAttr.split(',');
+        const subset = [];
+
+        list.forEach((l) => {
+            const range = l.split('-');
+            if (range.length == 2) {
+                const from = parseInt(range[0], 10);
+                const to = parseInt(range[1], 10);
+                if (from > 0 && to >= from) {
+                    for (let i = from; i <= to; i++) {
+                        subset.push(i);
+                    }
+                }
+            }
+            else {
+                subset.push(parseInt(l, 10));
+            }
+        });
+
+        const uniq = [...new Set(subset)];
+        uniq.forEach((row) => { if (!c.includes(row)) c.push(row); } );
     }
 }
 

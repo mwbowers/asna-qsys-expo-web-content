@@ -12,6 +12,7 @@ const AsnaDataAttrName = {
     ROW: 'data-asna-row',
     RECORD: 'data-asna-record',
     WINDOW: 'data-asna-window',
+    EXCLUDE_EMPTY_ROWS: 'data-asna-x-rows',
 
     // Subfile initialization 
     SFLC: 'data-asna-sflc', 
