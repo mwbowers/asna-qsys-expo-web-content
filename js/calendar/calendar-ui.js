@@ -20,50 +20,57 @@ const TOP_ROW_DRAG_BAR = 5;
 const TITLE_COL_SPAN = 3;
 const BLANK = ' ';
 
-const ICON_CALENDAR = `
+const ICON_CALENDAR_SVG = `
 <svg viewBox="0 -256 1850 1850" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
 <g transform="matrix(1 0 0 -1 91.119 1297.9)">
 <path fill="currentColor" d="m128-128h288v288h-288v-288zm352 0h320v288h-320v-288zm-352 352h288v320h-288v-320zm352 0h320v320h-320v-320zm-352 384h288v288h-288v-288zm736-736h320v288h-320v-288zm-384 736h320v288h-320v-288zm768-736h288v288h-288v-288zm-384 352h320v320h-320v-320zm-352 864v288q0 13-9.5 22.5t-22.5 9.5h-64q-13 0-22.5-9.5t-9.5-22.5v-288q0-13 9.5-22.5t22.5-9.5h64q13 0 22.5 9.5t9.5 22.5zm736-864h288v320h-288v-320zm-384 384h320v288h-320v-288zm384 0h288v288h-288v-288zm32 480v288q0 13-9.5 22.5t-22.5 9.5h-64q-13 0-22.5-9.5t-9.5-22.5v-288q0-13 9.5-22.5t22.5-9.5h64q13 0 22.5 9.5t9.5 22.5zm384 64v-1280q0-52-38-90t-90-38h-1408q-52 0-90 38t-38 90v1280q0 52 38 90t90 38h128v96q0 66 47 113t113 47h64q66 0 113-47t47-113v-96h384v96q0 66 47 113t113 47h64q66 0 113-47t47-113v-96h128q52 0 90-38t38-90z"></path>
 </g>
 </svg>`;
 
-const ICON_GO_TODAY = `
+const ICON_GO_TODAY_SVG = `
 <svg style="height: 100%" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M1303 964l-512 512q-10 9-23 9t-23-9l-288-288q-9-10-9-23t9-22l46-46q9-9 22-9t23 9l220 220 444-444q10-9 23-9t22 9l46 46q9 9 9 22t-9 23zm-1175 700h1408v-1024h-1408v1024zm384-1216v-288q0-14-9-23t-23-9h-64q-14 0-23 9t-9 23v288q0 14 9 23t23 9h64q14 0 23-9t9-23zm768 0v-288q0-14-9-23t-23-9h-64q-14 0-23 9t-9 23v288q0 14 9 23t23 9h64q14 0 23-9t9-23zm384-64v1280q0 52-38 90t-90 38h-1408q-52 0-90-38t-38-90v-1280q0-52 38-90t90-38h128v-96q0-66 47-113t113-47h64q66 0 113 47t47 113v96h384v-96q0-66 47-113t113-47h64q66 0 113 47t47 113v96h128q52 0 90 38t38 90z"/>
 </svg>`;
 
-const ICON_CLOSE = `
+const ICON_CLOSE_SVG = `
 <svg style="height: 100%"  viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M1490 1322q0 40-28 68l-136 136q-28 28-68 28t-68-28l-294-294-294 294q-28 28-68 28t-68-28l-136-136q-28-28-28-68t28-68l294-294-294-294q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 294 294-294q28-28 68-28t68 28l136 136q28 28 28 68t-28 68l-294 294 294 294q28 28 28 68z"/>
 </svg>`;
 
-const ICON_PREV_YEAR = `
+const ICON_PREV_YEAR_SVG = `
 <span class="calendar-nav-image">
 <svg style="height: 100%" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M1683 141q19-19 32-13t13 32v1472q0 26-13 32t-32-13l-710-710q-9-9-13-19v710q0 26-13 32t-32-13l-710-710q-19-19-19-45t19-45l710-710q19-19 32-13t13 32v710q4-10 13-19z"/>
 </svg>
 </span>`;
+const ICON_PREV_YEAR = 'icon-prev-year';
 
-const ICON_PREV_MONTH = `
+const ICON_PREV_MONTH_SVG = `
 <span class="calendar-nav-image-larger">
 <svg style="height: 100%" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M1216 448v896q0 26-19 45t-45 19-45-19l-448-448q-19-19-19-45t19-45l448-448q19-19 45-19t45 19 19 45z "/>
 </svg>
 </span>`;
+const ICON_PREV_MONTH = 'icon-prev-month';
 
-const ICON_NEXT_MONTH = `
+const ICON_NEXT_MONTH_SVG = `
 <span class="calendar-nav-image-larger">
 <svg style="height: 100%" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M1152 896q0 26-19 45l-448 448q-19 19-45 19t-45-19-19-45v-896q0-26 19-45t45-19 45 19l448 448q19 19 19 45z"/>
 </svg>
 </span>`;
+const ICON_NEXT_MONTH = 'icon-next-month';
 
-const ICON_NEXT_YEAR = `
+const ICON_NEXT_YEAR_SVG = `
 <span class="calendar-nav-image">
 <svg style="height: 100%" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
 <path fill="currentColor" d="M109 1651q-19 19-32 13t-13-32v-1472q0-26 13-32t32 13l710 710q9 9 13 19v-710q0-26 13-32t32 13l710 710q19 19 19 45t-19 45l-710 710q-19 19-32 13t-13-32v-710q-4 10-13 19z "/>
 </svg>
 </span>`;
+const ICON_NEXT_YEAR = 'icon-next-year';
+
+const OPACITY_ENABLED = 1;
+const OPACITY_DISABLED = 0.5;
 
 class CalendarUI {
     constructor() {
@@ -194,7 +201,7 @@ class CalendarUI {
         calButton.className = 'calendar-button';
         calButton.setAttribute('type', 'button');
 
-        calButton.innerHTML = ICON_CALENDAR;
+        calButton.innerHTML = ICON_CALENDAR_SVG;
 
         return calButton;
     }
@@ -219,7 +226,7 @@ class CalendarUI {
 
         const todayGotoToday = document.createElement('td');
         todayGotoToday.className = 'calendar-goto-today';
-        todayGotoToday.innerHTML = ICON_GO_TODAY;
+        todayGotoToday.innerHTML = ICON_GO_TODAY_SVG;
         todayGotoToday.addEventListener('mousedown', (event) => { this.handleGotoTodayMouseDownEvent(event); return false; });
 
         topRow.appendChild(todayGotoToday);
@@ -236,41 +243,43 @@ class CalendarUI {
 
         const closeCalendar = document.createElement('td');
         closeCalendar.className = 'calendar-close';
-        closeCalendar.innerHTML = ICON_CLOSE;
+        closeCalendar.innerHTML = ICON_CLOSE_SVG;
         closeCalendar.addEventListener('mousedown', (event) => { this.handleCloseCalendarMouseDownEvent(event); return false; });
         topRow.appendChild(closeCalendar);
 
         const navRow = document.createElement('tr');
         navRow.className = 'calendar-nav-row';
 
-        const prevYear = document.createElement('td');
-        prevYear.className = 'calendar-nav-icon';
-        prevYear.innerHTML = ICON_PREV_YEAR;
-        prevYear.addEventListener('mousedown', (event) => { this.handlePrevYearMouseDownEvent(event); return false; });
-        navRow.appendChild(prevYear);
+        this.navIconEl = [];
 
-        const prevMonth = document.createElement('td');
-        prevMonth.className = 'calendar-nav-icon';
-        prevMonth.innerHTML = ICON_PREV_MONTH;
-        prevMonth.addEventListener('mousedown', (event) => { this.handlePrevMonthMouseDownEvent(event); return false; });
-        navRow.appendChild(prevMonth);
+        this.navIconEl[ICON_PREV_YEAR] = document.createElement('td');
+        this.navIconEl[ICON_PREV_YEAR].className = 'calendar-nav-icon';
+        this.navIconEl[ICON_PREV_YEAR].innerHTML = ICON_PREV_YEAR_SVG;
+        this.navIconEl[ICON_PREV_YEAR].addEventListener('mousedown', (event) => { this.handlePrevYearMouseDownEvent(event); return false; });
+        navRow.appendChild(this.navIconEl[ICON_PREV_YEAR]);
+
+        this.navIconEl[ICON_PREV_MONTH] = document.createElement('td');
+        this.navIconEl[ICON_PREV_MONTH].className = 'calendar-nav-icon';
+        this.navIconEl[ICON_PREV_MONTH].innerHTML = ICON_PREV_MONTH_SVG;
+        this.navIconEl[ICON_PREV_MONTH].addEventListener('mousedown', (event) => { this.handlePrevMonthMouseDownEvent(event); return false; });
+        navRow.appendChild(this.navIconEl[ICON_PREV_MONTH]);
 
         this.calendarTitleElement = document.createElement('td');
         this.calendarTitleElement.className = 'calendar-title';
         this.calendarTitleElement.colSpan = TITLE_COL_SPAN;
         navRow.appendChild(this.calendarTitleElement);
 
-        const nextMonth = document.createElement('td');
-        nextMonth.className = 'calendar-nav-icon';
-        nextMonth.innerHTML = ICON_NEXT_MONTH;
-        nextMonth.addEventListener('mousedown', (event) => { this.handleNextMonthMouseDownEvent(event); return false; });
-        navRow.appendChild(nextMonth);
+        this.navIconEl[ICON_NEXT_MONTH] = document.createElement('td');
+        this.navIconEl[ICON_NEXT_MONTH].className = 'calendar-nav-icon';
+        this.navIconEl[ICON_NEXT_MONTH].innerHTML = ICON_NEXT_MONTH_SVG;
+        this.navIconEl[ICON_NEXT_MONTH].addEventListener('mousedown', (event) => { this.handleNextMonthMouseDownEvent(event); return false; });
+        navRow.appendChild(this.navIconEl[ICON_NEXT_MONTH]);
 
-        const nextYear = document.createElement('td');
-        nextYear.className = 'calendar-nav-icon';
-        nextYear.innerHTML = ICON_NEXT_YEAR;
-        nextYear.addEventListener('mousedown', (event) => { this.handleNextYearMouseDownEvent(event); return false; });
-        navRow.appendChild(nextYear);
+        this.navIconEl[ICON_NEXT_YEAR] = document.createElement('td');
+        this.navIconEl[ICON_NEXT_YEAR].className = 'calendar-nav-icon';
+        this.navIconEl[ICON_NEXT_YEAR].innerHTML = ICON_NEXT_YEAR_SVG;
+        this.navIconEl[ICON_NEXT_YEAR].addEventListener('mousedown', (event) => { this.handleNextYearMouseDownEvent(event); return false; });
+        navRow.appendChild(this.navIconEl[ICON_NEXT_YEAR]);
 
         const daysOfWeek = document.createElement('tr');
         for (let day = 0; day < DAYS_IN_WEEK; day++) {
@@ -328,9 +337,10 @@ class CalendarUI {
             return;
         }
 
+        this.enableAllMoveIcons();
         this.calMap = this.emptyCalMap();
 
-        const numDays = IbmDate.numOfDaysInMonth(this.monthDisplayed, this.yearDisplayed);
+        // const numDays = IbmDate.numOfDaysInMonth(this.monthDisplayed, this.yearDisplayed);
         const tempDate = IbmDate.createDate(1, this.monthDisplayed, this.yearDisplayed);
 
         let firstDay = tempDate.getDay() - this.firstWeekDay;
@@ -391,6 +401,8 @@ class CalendarUI {
                 }
             }
         }
+
+        this.disableInvalidMovesIcons();
     }
 
     showUI(rect) {
@@ -404,6 +416,38 @@ class CalendarUI {
             this.calendarContainerElement.focus();
         }
     }
+
+    enableAllMoveIcons() {
+        this.navIconEl[ICON_PREV_YEAR].style.opacity = OPACITY_ENABLED;
+        CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_YEAR], true);
+
+        this.navIconEl[ICON_PREV_MONTH].style.opacity = OPACITY_ENABLED;
+        CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_MONTH], true);
+
+        this.navIconEl[ICON_NEXT_MONTH].style.opacity = OPACITY_ENABLED;
+        CalendarUI.setEnabledState(this.navIconEl[ICON_NEXT_MONTH], true);
+
+        this.navIconEl[ICON_NEXT_YEAR].style.opacity = OPACITY_ENABLED;
+        CalendarUI.setEnabledState(this.navIconEl[ICON_NEXT_YEAR], true);
+    }
+
+    disableInvalidMovesIcons() {
+        if (!this.testMoveMonths(-1)) {
+            this.navIconEl[ICON_PREV_MONTH].style.opacity = OPACITY_DISABLED;
+            CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_MONTH], false);
+        }
+        if (!this.testMoveYears(-1)) {
+            this.navIconEl[ICON_PREV_YEAR].style.opacity = OPACITY_DISABLED;
+            CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_YEAR], false);
+        }
+    }
+
+    static setEnabledState(el, enabled) {
+        el._enabled = enabled;
+    }
+    static getEnabledState(el) {
+        return el._enabled;
+    } 
 
     handleCalendarBlurEvent(event) { // Lost Focus
         if (event.target && !this.calendarContainerElement.contains(event.target)) {
@@ -429,22 +473,29 @@ class CalendarUI {
     }
 
     handlePrevMonthMouseDownEvent(event) {
+        if (!CalendarUI.getEnabledState(this.navIconEl[ICON_PREV_MONTH]))
+            return;
         this.moveMonths(-1);
         this.updateCalendar();
     }
 
     handleNextMonthMouseDownEvent(event) {
+        if (!CalendarUI.getEnabledState(this.navIconEl[ICON_NEXT_MONTH]))
+            return;
         this.moveMonths(1);
         this.updateCalendar();
     }
 
     handlePrevYearMouseDownEvent(event) {
-        if (this.moveYears(-1)) {
-            this.updateCalendar();
-        }
+        if (!CalendarUI.getEnabledState(this.navIconEl[ICON_PREV_YEAR]))
+            return;
+        this.moveYears(-1);
+        this.updateCalendar();
     }
 
     handleNextYearMouseDownEvent(event) {
+        if (!CalendarUI.getEnabledState(this.navIconEl[ICON_NEXT_YEAR]))
+            return;
         if (this.moveYears(1)) {
             this.updateCalendar();
         }
@@ -539,7 +590,7 @@ class CalendarUI {
         if (isNaN(relativeMonthsAmount)) {
             return;
         }
-        let nextMonthNumber = this.monthDisplayed + relativeMonthsAmount;
+        const nextMonthNumber = this.monthDisplayed + relativeMonthsAmount;
 
         if (this.moveYears((nextMonthNumber < 0 ? -1 : 0) + nextMonthNumber / MONTHS_IN_YEAR)) {
             this.monthDisplayed = nextMonthNumber % MONTHS_IN_YEAR;
@@ -549,18 +600,35 @@ class CalendarUI {
         }
     }
 
-    moveYears(relativeYearsAmount) {
-        if (isNaN(relativeYearsAmount)) {
+    testMoveMonths(relativeMonthsAmount) {
+        if (isNaN(relativeMonthsAmount)) {
             return false;
         }
-
-        if (relativeYearsAmount === 0) {
-            return true;
+        const nextMonthNumber = this.monthDisplayed + relativeMonthsAmount;
+        if (!this.testMoveYears((nextMonthNumber < 0 ? -1 : 0) + nextMonthNumber / MONTHS_IN_YEAR)) {
+            return false;
         }
-
-        let requestedYear = this.yearDisplayed + (relativeYearsAmount > 0 ? Math.floor(relativeYearsAmount) : Math.ceil(relativeYearsAmount));
-        this.yearDisplayed = requestedYear;
         return true;
+    }
+
+    moveYears(relativeYearsAmount) {
+        if (isNaN(relativeYearsAmount)) { return false; }
+        if (relativeYearsAmount === 0) { return true; }
+
+        this.yearDisplayed = this.calcYear(relativeYearsAmount);
+        return true;
+    }
+
+    testMoveYears(relativeYearsAmount) {
+        if (isNaN(relativeYearsAmount)) { return false; }
+        if (relativeYearsAmount === 0) { return true; }
+
+        const requestedYear = this.calcYear(relativeYearsAmount);
+        return requestedYear >= 1;
+    }
+
+    calcYear(relYearsAmt) {
+        return this.yearDisplayed + (relYearsAmt > 0 ? Math.floor(relYearsAmt) : Math.ceil(relYearsAmt));
     }
 
     emptyCalMap() {
