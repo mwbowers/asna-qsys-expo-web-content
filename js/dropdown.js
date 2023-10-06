@@ -97,9 +97,6 @@ class DropDown {
             }
         }
 
-        if (state === 'unquoted')
-            vals.push(valuesEos.substring(iLexeme, i));
-
         return vals;
     }
 
