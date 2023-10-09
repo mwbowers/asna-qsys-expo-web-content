@@ -442,6 +442,20 @@ class CalendarUI {
             this.navIconEl[ICON_PREV_YEAR].style.opacity = OPACITY_DISABLED;
             CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_YEAR], false);
         }
+
+        const maxDate = CalendarUI.newDateNoTime(this.input.getAttribute('max'));
+        if (!maxDate) {
+            return;
+        }
+
+        if (!this.testMoveMonths(1, maxDate)) {
+            this.navIconEl[ICON_NEXT_MONTH].style.opacity = OPACITY_DISABLED;
+            CalendarUI.setEnabledState(this.navIconEl[ICON_NEXT_MONTH], false);
+        }
+        if (!this.testMoveYears(1, maxDate)) {
+            this.navIconEl[ICON_NEXT_YEAR].style.opacity = OPACITY_DISABLED;
+            CalendarUI.setEnabledState(this.navIconEl[ICON_NEXT_YEAR], false);
+        }
     }
 
     static setEnabledState(el, enabled) {
@@ -515,20 +529,30 @@ class CalendarUI {
 
         const daySelected = parseInt(event.currentTarget.innerText, 10);
         const action = this.testDayInWeek(daySelected, weekSelected);
+        const minDate = CalendarUI.newDateNoTime(this.input.getAttribute('min'));
+        const maxDate = CalendarUI.newDateNoTime(this.input.getAttribute('max'));
 
         switch (action) {
             case 'prev-month':
+                if (!this.testMoveMonths(-1, minDate)) {
+                    break;
+                }
                 this.moveMonths(-1);
                 this.updateCalendar();
                 break;
             case 'next-month':
+                if (!this.testMoveMonths(1, maxDate)) {
+                    break;
+                }
                 this.moveMonths(1);
                 this.updateCalendar();
                 break;
             case 'select':
                 const targetDate = IbmDate.createDate(daySelected, this.monthDisplayed, this.yearDisplayed);
-                const minDate = CalendarUI.newDateNoTime(this.input.getAttribute('min'));
                 if (minDate && targetDate < minDate) {
+                    break;
+                }
+                if (maxDate && targetDate > maxDate) {
                     break;
                 }
                 this.date = targetDate;
@@ -612,17 +636,17 @@ class CalendarUI {
         }
     }
 
-    testMoveMonths(relativeMonthsAmt, minDate) {
+    testMoveMonths(relativeMonthsAmt, refDate) {
         if (isNaN(relativeMonthsAmt)) {
             return false;
         }
         const targetMonthNumber = this.monthDisplayed + relativeMonthsAmt;
         const relativeYearsAmt = (targetMonthNumber < 0 ? -1 : 0) + targetMonthNumber / MONTHS_IN_YEAR; 
-        if (!this.testMoveYears(relativeYearsAmt, minDate)){
+        if (!this.testMoveYears(relativeYearsAmt, refDate)){
             return false;
         }
-        if (minDate) {
-            const minDateNoDay = new Date(minDate.getFullYear(), minDate.getMonth());
+        if (refDate) {
+            const refDateNoDay = new Date(refDate.getFullYear(), refDate.getMonth());
             let targetMonth = targetMonthNumber % MONTHS_IN_YEAR;
             if (targetMonth < 0) {
                 targetMonth += MONTHS_IN_YEAR;
@@ -630,7 +654,11 @@ class CalendarUI {
             const targetYear = this.calcYear(relativeYearsAmt);
             const targetDate = new Date(targetYear, targetMonth);
 
-            if (targetDate < minDateNoDay) {
+            if (relativeMonthsAmt < 0 && targetDate < refDateNoDay) {
+                return false;
+            }
+
+            if (relativeMonthsAmt > 0 && targetDate > refDateNoDay) {
                 return false;
             }
         }
@@ -645,17 +673,20 @@ class CalendarUI {
         return true;
     }
 
-    testMoveYears(relativeYearsAmount, minDate) {
-        if (isNaN(relativeYearsAmount)) { return false; }
-        if (relativeYearsAmount === 0) { return true; }
+    testMoveYears(relYearsAmount, refDate) {
+        if (isNaN(relYearsAmount)) { return false; }
+        if (relYearsAmount === 0) { return true; }
 
-        const requestedYear = this.calcYear(relativeYearsAmount);
+        const requestedYear = this.calcYear(relYearsAmount);
         if (requestedYear < 1) {
             return false;
         }
-        if (minDate) {
-            const minDateYear = minDate.getFullYear();
-            if (requestedYear < minDateYear) {
+        if (refDate) {
+            const refDateYear = refDate.getFullYear();
+            if (relYearsAmount < 0 && requestedYear < refDateYear) {
+                return false;
+            }
+            if (relYearsAmount > 0 && requestedYear > refDateYear) {
                 return false;
             }
         }
