@@ -432,11 +432,13 @@ class CalendarUI {
     }
 
     disableInvalidMovesIcons() {
-        if (!this.testMoveMonths(-1)) {
+        const minDate = CalendarUI.newDateNoTime(this.input.getAttribute('min'));
+
+        if (!this.testMoveMonths(-1, minDate)) {
             this.navIconEl[ICON_PREV_MONTH].style.opacity = OPACITY_DISABLED;
             CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_MONTH], false);
         }
-        if (!this.testMoveYears(-1)) {
+        if (!this.testMoveYears(-1, minDate)) {
             this.navIconEl[ICON_PREV_YEAR].style.opacity = OPACITY_DISABLED;
             CalendarUI.setEnabledState(this.navIconEl[ICON_PREV_YEAR], false);
         }
@@ -448,6 +450,11 @@ class CalendarUI {
     static getEnabledState(el) {
         return el._enabled;
     } 
+
+    static newDateNoTime(isoDate) {
+        if (!isoDate) { return null; }
+        return new Date(isoDate +'T00:00:00');
+    }
 
     handleCalendarBlurEvent(event) { // Lost Focus
         if (event.target && !this.calendarContainerElement.contains(event.target)) {
@@ -506,8 +513,8 @@ class CalendarUI {
             return;
         }
 
-        let daySelected = parseInt(event.currentTarget.innerText, 10);
-        let action = this.testDayInWeek(daySelected, weekSelected);
+        const daySelected = parseInt(event.currentTarget.innerText, 10);
+        const action = this.testDayInWeek(daySelected, weekSelected);
 
         switch (action) {
             case 'prev-month':
@@ -519,7 +526,12 @@ class CalendarUI {
                 this.updateCalendar();
                 break;
             case 'select':
-                this.date = IbmDate.createDate(daySelected, this.monthDisplayed, this.yearDisplayed);
+                const targetDate = IbmDate.createDate(daySelected, this.monthDisplayed, this.yearDisplayed);
+                const minDate = CalendarUI.newDateNoTime(this.input.getAttribute('min'));
+                if (minDate && targetDate < minDate) {
+                    break;
+                }
+                this.date = targetDate;
                 this.updateInput();
                 this.hide();
                 break;
@@ -600,13 +612,27 @@ class CalendarUI {
         }
     }
 
-    testMoveMonths(relativeMonthsAmount) {
-        if (isNaN(relativeMonthsAmount)) {
+    testMoveMonths(relativeMonthsAmt, minDate) {
+        if (isNaN(relativeMonthsAmt)) {
             return false;
         }
-        const nextMonthNumber = this.monthDisplayed + relativeMonthsAmount;
-        if (!this.testMoveYears((nextMonthNumber < 0 ? -1 : 0) + nextMonthNumber / MONTHS_IN_YEAR)) {
+        const targetMonthNumber = this.monthDisplayed + relativeMonthsAmt;
+        const relativeYearsAmt = (targetMonthNumber < 0 ? -1 : 0) + targetMonthNumber / MONTHS_IN_YEAR; 
+        if (!this.testMoveYears(relativeYearsAmt, minDate)){
             return false;
+        }
+        if (minDate) {
+            const minDateNoDay = new Date(minDate.getFullYear(), minDate.getMonth());
+            let targetMonth = targetMonthNumber % MONTHS_IN_YEAR;
+            if (targetMonth < 0) {
+                targetMonth += MONTHS_IN_YEAR;
+            }
+            const targetYear = this.calcYear(relativeYearsAmt);
+            const targetDate = new Date(targetYear, targetMonth);
+
+            if (targetDate < minDateNoDay) {
+                return false;
+            }
         }
         return true;
     }
@@ -619,12 +645,21 @@ class CalendarUI {
         return true;
     }
 
-    testMoveYears(relativeYearsAmount) {
+    testMoveYears(relativeYearsAmount, minDate) {
         if (isNaN(relativeYearsAmount)) { return false; }
         if (relativeYearsAmount === 0) { return true; }
 
         const requestedYear = this.calcYear(relativeYearsAmount);
-        return requestedYear >= 1;
+        if (requestedYear < 1) {
+            return false;
+        }
+        if (minDate) {
+            const minDateYear = minDate.getFullYear();
+            if (requestedYear < minDateYear) {
+                return false;
+            }
+        }
+        return true;
     }
 
     calcYear(relYearsAmt) {
