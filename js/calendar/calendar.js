@@ -69,7 +69,10 @@ class Calendar {
         button.addEventListener('click', (event) => { this.handleCalendarOnClickEvent(event, input, options); return false; });
 
         if (!input.readonly && input.getAttribute('min') || input.getAttribute('max')) {
-            input.setAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT, options.dateFormat);
+            const title = input.getAttribute('title');
+            const rangeConstraint = { dateFormat: options.dateFormat, errMsg: title != null ? title : '' };
+            input.setAttribute('title', ''); // Avoid using it while hovering over element.
+            input.setAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT, JSON.stringify(rangeConstraint));
             input.addEventListener('input', () => input.setCustomValidity('')); // Clear validation error
         }
     }

@@ -19,6 +19,8 @@ const MANDATORY_FAILED_MSG = {
     Fill: 'Each position in the field must have a character entered in it.'
 };
 
+const DATE_OUT_RANGE_MSG = 'Date out of range!';
+
 class Validate {
     static setupMandatory(form) { // Note: data-* attribute is NOT removed
         const sel = form.querySelectorAll(`[${AsnaDataAttrName.CHECK_MANDATORY}]`);
@@ -108,25 +110,26 @@ class Validate {
 
             if (!(minIsoDate || maxIsoDate)) { continue; } // unexpected (why did it have CALENDAR_INPUT_RANGE_CONSTRAINT?)
 
-            const dateFormat = input.getAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT);
-            let errorMsg = input.getAttribute('title');
-            if (!errorMsg)
-                errorMsg = 'Date out of range!';
-            const date = IbmDate.textToDate(dateFormat, input.value);
-            if (minIsoDate) {
-                const minDate = new Date(minIsoDate + 'T00:00:00');
-                if (date < minDate) {
-                    input.setCustomValidity(errorMsg);
-                    continue;
+            const jsonOptions = input.getAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT);
+            try {
+                const options = JSON.parse(jsonOptions);
+                const errorMsg = options.title ? options.title : DATE_OUT_RANGE_MSG;
+                const date = IbmDate.textToDate(options.dateFormat, input.value);
+                if (minIsoDate) {
+                    const minDate = new Date(minIsoDate + 'T00:00:00');
+                    if (date < minDate) {
+                        input.setCustomValidity(errorMsg);
+                        continue;
+                    }
                 }
-            }
-            if (maxIsoDate) {
-                const maxDate = new Date(maxIsoDate + 'T00:00:00');
-                if (date > maxDate) {
-                    input.setCustomValidity(errorMsg);
-                    continue;
+                if (maxIsoDate) {
+                    const maxDate = new Date(maxIsoDate + 'T00:00:00');
+                    if (date > maxDate) {
+                        input.setCustomValidity(errorMsg);
+                        continue;
+                    }
                 }
-            }
+            } catch { }
         }
     }
 
