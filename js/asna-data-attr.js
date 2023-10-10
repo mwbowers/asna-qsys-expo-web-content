@@ -38,6 +38,7 @@ const AsnaDataAttrName = {
     // Calendar
     CALENDAR_NAMES: 'data-asna-calendar-names',
     CALENDAR_OPTIONS: 'data-asna-calendar-options',
+    CALENDAR_INPUT_RANGE_CONSTRAINT: 'data-asna-calendar-range-constraint', // internal
 
     // Decimal Date (date whose value is a decimal)
     DEC_DATE_OPTIONS: 'data-asna-decdate-options',

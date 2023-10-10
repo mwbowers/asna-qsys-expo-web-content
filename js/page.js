@@ -500,6 +500,8 @@ class Page {
             return;
         }
 
+        Validate.validateDateConstraint(form);
+
         if (!Validate.reportFormValidity(form)) {
             this.suspendAsyncPost = false;
             return;

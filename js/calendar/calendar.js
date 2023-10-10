@@ -9,6 +9,7 @@ export { theCalendar as Calendar };
 
 import { CalendarUI } from './calendar-ui.js';
 import { Base64 } from '../base-64.js';
+import { AsnaDataAttrName } from '../asna-data-attr.js';
 
 class Calendar {
 
@@ -66,6 +67,11 @@ class Calendar {
         }
         wrapper.appendChild(button);
         button.addEventListener('click', (event) => { this.handleCalendarOnClickEvent(event, input, options); return false; });
+
+        if (!input.readonly && input.getAttribute('min') || input.getAttribute('max')) {
+            input.setAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT, options.dateFormat);
+            input.addEventListener('input', () => input.setCustomValidity('')); // Clear validation error
+        }
     }
 
     show(input, options) {

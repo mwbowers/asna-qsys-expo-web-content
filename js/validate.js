@@ -7,10 +7,11 @@
 
 export { Validate };
 
-import { PageAlert } from '../js/page-alert.js';
-import { AsnaDataAttrName } from '../js/asna-data-attr.js';
-import { AidKeyHelper } from '../js/kbd.js';
-import { Base64, UnicodeToUTF8 } from '../js/base-64.js';
+import { PageAlert } from './page-alert.js';
+import { AsnaDataAttrName } from './asna-data-attr.js';
+import { AidKeyHelper } from './kbd.js';
+import { Base64, UnicodeToUTF8 } from './base-64.js';
+import { IbmDate } from './calendar/ibm-date.js';
 
 const OK_TEXT = 'Ok';
 const MANDATORY_FAILED_MSG = {
@@ -95,6 +96,38 @@ class Validate {
 
         PageAlert.show(errMsg, OK_TEXT, firstFailedEl);
         return false;
+    }
+
+    static validateDateConstraint(form) {
+        const dates = form.querySelectorAll(`[${AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT}]`);
+
+        for (let i = 0, l = dates.length; i < l; i++) {
+            const input = dates[i];
+            const minIsoDate = input.getAttribute('min');
+            const maxIsoDate = input.getAttribute('max');
+
+            if (!(minIsoDate || maxIsoDate)) { continue; } // unexpected (why did it have CALENDAR_INPUT_RANGE_CONSTRAINT?)
+
+            const dateFormat = input.getAttribute(AsnaDataAttrName.CALENDAR_INPUT_RANGE_CONSTRAINT);
+            let errorMsg = input.getAttribute('title');
+            if (!errorMsg)
+                errorMsg = 'Date out of range!';
+            const date = IbmDate.textToDate(dateFormat, input.value);
+            if (minIsoDate) {
+                const minDate = new Date(minIsoDate + 'T00:00:00');
+                if (date < minDate) {
+                    input.setCustomValidity(errorMsg);
+                    continue;
+                }
+            }
+            if (maxIsoDate) {
+                const maxDate = new Date(maxIsoDate + 'T00:00:00');
+                if (date > maxDate) {
+                    input.setCustomValidity(errorMsg);
+                    continue;
+                }
+            }
+        }
     }
 
     static setDirty(event) {
