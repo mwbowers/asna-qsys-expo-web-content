@@ -23,22 +23,12 @@ class SubfilePaging {
 
         switch (aidKey) {
             case 'PgDn':
-                if (store.sflRecords.horzPageSize) {
-                    reqFrom += store.sflRecords.horzPageSize;
-                }
-                else {
-                    reqFrom += store.sflRecords.pageSize;
-                }
+                reqFrom += store.sflRecords.pageSize;
                 wantPageSize = SubfilePaging.calcPageSizeIfDropped(store, wantPageSize);
                 break;
 
             case 'PgUp':
-                if (store.sflRecords.horzPageSize) {
-                    reqFrom = Math.max(store.current.topRrn - store.sflRecords.horzPageSize, 0);
-                }
-                else {
-                    reqFrom = Math.max(store.current.topRrn - store.sflRecords.pageSize, 0);
-                }
+                reqFrom = Math.max(store.current.topRrn - store.sflRecords.pageSize, 0);
 
                 if (reqFrom == 0 && store.current.topRrn == 0) {
                     Kbd.showInvalidRollAlert();
@@ -89,7 +79,7 @@ class SubfilePaging {
     }
 
     static calcPageSizeIfDropped(store, pageSize) {
-        if (!(store.sflRecords.horzPageSize) && store.fldDrop.foldLinesPerRecord && !(store.fldDrop.isFolded)) {
+        if (store.fldDrop.foldLinesPerRecord && !(store.fldDrop.isFolded)) {
             const foldRowsPerRecord = parseInt(store.fldDrop.foldLinesPerRecord, 10);
             if (!(foldRowsPerRecord === NaN || foldRowsPerRecord <= 0)) {
                 pageSize = store.sflRecords.pageSize * foldRowsPerRecord;
