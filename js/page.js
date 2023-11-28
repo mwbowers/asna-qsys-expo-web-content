@@ -253,12 +253,15 @@ class Page {
         }
     }
 
-    handlePushKeyOnClickEvent(el, keyToPush, focusElName, fieldValue, virtualRowCol) {
+    handlePushKeyOnClickEvent(event, keyToPush, focusElName, fieldValue, virtualRowCol) {
         if (this.suspendAsyncPost) {
             return;
         }
         const keyDetail = Kbd.convertKeyNameToKeyDetail(keyToPush, this.aidKeyBitmap);
         if (keyDetail) {
+            if (!keyDetail.target && event && event.target) {
+                keyDetail.target = event.target;
+            }
             const action = Kbd.processKeyDetail(keyDetail, this.aidKeyBitmap);
             const aidKey = action.aidKeyToPush;
             const store = action.sflCtlStore;
@@ -564,8 +567,8 @@ class Page {
             const encPushKeyParms = el.getAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);
             if (encPushKeyParms) {
                 const pushKeyParms = JSON.parse(Base64.decode(encPushKeyParms));
-                el.addEventListener('click', () => {
-                    this.handlePushKeyOnClickEvent(el, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
+                el.addEventListener('click', (event) => {
+                    this.handlePushKeyOnClickEvent(event, pushKeyParms.key, pushKeyParms.focusElement, pushKeyParms.fieldValue, pushKeyParms.virtualRowCol);
                 });
                 el.classList.add('dds-clickable');
                 el.removeAttribute(AsnaDataAttrName.ONCLICK_PUSHKEY);

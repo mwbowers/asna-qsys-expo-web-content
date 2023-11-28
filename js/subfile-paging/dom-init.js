@@ -346,8 +346,8 @@ class SubfileController {
         }
 
         if (!isAtBottom) {
-            span.addEventListener('click', (el) => {
-                sflEndClickAsPushKeyHandling(el, 'PgDn')
+            span.addEventListener('click', (event) => {
+                sflEndClickAsPushKeyHandling(event, 'PgDn')
             });
         }
 

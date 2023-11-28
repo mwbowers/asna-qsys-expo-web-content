@@ -93,7 +93,7 @@ class Kbd {
         if ((Kbd.isFKey(keyDetail) || keyDetail.keyCode === KEY_CODE_ENTER || keyDetail.keyCode === KEY_CODE_PAGE_UP || keyDetail.keyCode === KEY_CODE_PAGE_DOWN) && !keyDetail.altKey && !keyDetail.ctrlKey) {
             switch (keyDetail.keyCode) {
                 case KEY_CODE_ENTER:
-                    if (keyDetail.srcElement && Kbd.isTextArea(keyDetail.srcElement)) {
+                    if (keyDetail.target && Kbd.isTextArea(keyDetail.target)) {
                         return { returnBooleanValue: true }; // On a text area, <enter> should be handled by the element (in this case to possibly insert a page-break)
                     }
                     else {
@@ -101,16 +101,16 @@ class Kbd {
                     }
 
                 case KEY_CODE_PAGE_UP:
-                    return Kbd.processRollKey(aidKeyHelper, 'PgUp', keyDetail.srcElement);
+                    return Kbd.processRollKey(aidKeyHelper, 'PgUp', keyDetail.target);
 
                 case KEY_CODE_PAGE_DOWN:
-                    return Kbd.processRollKey(aidKeyHelper, 'PgDn', keyDetail.srcElement);
+                    return Kbd.processRollKey(aidKeyHelper, 'PgDn', keyDetail.target);
 
                 default: {
                     let functionNumber = Kbd.keyCodeToMapIndex(keyDetail);
                     let keyName = `F${functionNumber}`;
                     if (aidKeyHelper.isEnabled(functionNumber - 1)) {
-                        const sflFoldDropAction = FoldDrop.processCadidateKey(keyName, keyDetail.srcElement);
+                        const sflFoldDropAction = FoldDrop.processCadidateKey(keyName, keyDetail.target);
                         if (sflFoldDropAction) {
                             return sflFoldDropAction;
                         }
@@ -167,14 +167,14 @@ class Kbd {
 
     static parseKey(event) {
         if (window.event) { // IE specific
-            return { keyCode: window.event.keyCode, srcElement: window.event.srcElement, ctrlKey: window.event.ctrlKey, altKey: window.event.altKey, shiftKey: window.event.shiftKey }
+            return { keyCode: window.event.keyCode, target: window.event.srcElement, ctrlKey: window.event.ctrlKey, altKey: window.event.altKey, shiftKey: window.event.shiftKey }
         }
         else {
             if (!event) {
-                return { keyCode: '', srcElement: null, ctrlKey: null, altKey: null, shiftKey: null };
+                return { keyCode: '', target: null, ctrlKey: null, altKey: null, shiftKey: null };
             }
 
-            return { keyCode: event.which, srcElement: event.target, ctrlKey: event.ctrlKey, altKey: event.altKey, shiftKey: event.shiftKey };
+            return { keyCode: event.which, target: event.target, ctrlKey: event.ctrlKey, altKey: event.altKey, shiftKey: event.shiftKey };
         }
     }
 
