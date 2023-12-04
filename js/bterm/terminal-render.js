@@ -119,7 +119,7 @@ class TerminalRender {
         section.style.position = 'absolute';
         section.style.left = (col * this.termLayout._5250.cursor.w) + 'px';
         section.style.top = (this.termLayout._5250.t + (row * this.termLayout._5250.cursor.h)) + 'px';
-        section.style.width = (this.termLayout._5250.cursor.w * len) + 'px';
+        // section.style.width = (this.termLayout._5250.cursor.w * len) + 'px';
         section.style.height = (this.termLayout._5250.cursor.h - vertPadding + CHAR_MEASURE.UNDERSCORE_CHAR_HEIGHT) + 'px';
         section.setAttribute('data-asna-len', len);
 
