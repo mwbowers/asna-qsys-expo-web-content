@@ -7,6 +7,8 @@
 
 export { BufferMapping };
 
+import { TerminalDOM } from './terminal-dom.js';
+
 class BufferMapping {
     constructor(_5250cols) {
         this._5250cols = _5250cols;
@@ -23,10 +25,10 @@ class BufferMapping {
         return pos % this._5250cols >> 0; // Integer modulo
     }
     static rowToPixel(row, termLayout) {
-        return row * termLayout._5250.cursor.h;
+        return row * parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'));
     }
     static colToPixel(col, termLayout) {
-        return col * termLayout._5250.cursor.w;
+        return col * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'));
     }
 }
 

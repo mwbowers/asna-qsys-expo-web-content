@@ -7,12 +7,11 @@
 
 export { Screen, ScreenAttr, ScreenAttrEntry, RowCol, Field, FieldFormatWord, AdjustFill, ShiftEditSpec, InputArea};
 
-/*eslint-disable*/
 import { QSN_SA } from './ibm-codes.js';
 import { BufferMapping } from './buffer-mapping.js';
 import { Validate } from './terminal-validate.js';
 import { TerminalRender } from './terminal-render.js';
-/*eslint-enable*/
+import { TerminalDOM } from './terminal-dom.js';
 
 // const _debug = true; // Comment line for production !!!
 
@@ -316,7 +315,7 @@ class Screen {
         return -1;
     }
 
-    hotspotScan(termLayout) {
+    hotspotScan() {
         let result = [];
 
         for (let pos = 0; pos < this.buffer.length; pos++) {
@@ -379,11 +378,14 @@ class Screen {
                     continue;
                 }
 
-                const l = this.mapping.colFromPos(pos) * termLayout._5250.cursor.w;
-                const r = this.mapping.colFromPos(pos + 2 + digits) * termLayout._5250.cursor.w;
-                const t = (this.mapping.rowFromPos(pos) * termLayout._5250.cursor.h) + (TerminalRender.calcTextVertPadding(termLayout) / 2); // Assumes no vert offset.
-                const w = matchLen * termLayout._5250.cursor.w;
-                const h = termLayout._5250.cursor.h;
+                const cw = parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'));
+                const ch = parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'));
+
+                const l = this.mapping.colFromPos(pos) * cw;
+                const r = this.mapping.colFromPos(pos + 2 + digits) * cw;
+                const t = this.mapping.rowFromPos(pos) * ch;
+                const w = matchLen * cw;
+                const h = ch;
 
                 result.push({ 'box': { 'l': l, 't': t, 'r': r, 'w': w, 'h': h }, 'label': label, 'action': 'F' + f });
 

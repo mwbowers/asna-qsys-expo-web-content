@@ -13,6 +13,10 @@ import { Validate } from './terminal-validate.js';
 import { StringExt } from '../string.js';
 import { KEYBOARD_STATE } from './terminal-keyboard.js';
 
+const _debug = false;
+const _debug2 = false;
+const FONT_SIZE_TRY_INCREMENT = 0.01;
+
 // HTML IDs
 const ID = {
     CURSOR: 'AsnaTermCursor',
@@ -99,15 +103,9 @@ const CHAR_MEASURE = {
     UNDERSCORE_CHAR_HEIGHT: 1
 };
 
-const SAMPLE_ONE = 'M';
-const SAMPLE_44 = 'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'; // 44 characters
 const MAX_COORD_STR = '99,999';
 
 class TerminalDOM {
-    constructor() {
-        this.preFontFamily = '';
-        this.sample132 = SAMPLE_44 + SAMPLE_44 + SAMPLE_44;
-    }
 
     static resetBoxStyle(style) {
         style.margin = '0px';
@@ -121,22 +119,41 @@ class TerminalDOM {
         el.style.WebkitUserSelect = 'none'; // Chrome
     }
 
-    static htmlMeasureText(fontHeight, preFontFamily, text) {
-        let result = theMeasureCache.find(fontHeight, preFontFamily, text);
-        if (result) {
-            // console.log(`cache hit: ${text}`);
-            return result;
-        }
+    static measureHtmlPreSectionText(fontHeight, text) {
+        const measureDiv = document.createElement('pre');
+        measureDiv.type = 'text';
+        measureDiv.class = 'bterm-render-section';
 
+        measureDiv.style.fontSize = fontHeight + 'px';
+        measureDiv.style.position = 'absolute';
+        measureDiv.style.visibility = 'hidden';
+        measureDiv.style.width = 'auto';
+        measureDiv.style.height = 'auto';
+        measureDiv.style.overflow = 'visible';
+        measureDiv.style.border = 0;
+
+        measureDiv.innerHTML = text;
+        document.body.appendChild(measureDiv);
+
+        const height = measureDiv.clientHeight;
+        const width = measureDiv.clientWidth;
+
+        document.body.removeChild(measureDiv);
+
+        return { w: width, h: height };
+    }
+
+    // TODO: Make obsolete ...
+    static htmlMeasureText(fontHeight, fontFamily, text) {
         const measureDiv = document.createElement('div');
-        const isIE_7 = navigator.appVersion.indexOf('MSIE 7.') > 0;
+        // const isIE_7 = navigator.appVersion.indexOf('MSIE 7.') > 0;
 
-        if (!preFontFamily) {
-            console.log(`Assert: htmlMeasureText preFontFamily is ${preFontFamily} !`);
+        if (!fontFamily) {
+            console.log(`Assert: htmlMeasureText fontFamily is ${fontFamily} !`);
         }
 
         measureDiv.type = 'text';
-        measureDiv.style.fontFamily = preFontFamily;
+        measureDiv.style.fontFamily = fontFamily;
         measureDiv.style.fontSize = fontHeight + 'px';
         measureDiv.style.position = 'absolute';
         measureDiv.style.visibility = 'hidden';
@@ -151,15 +168,12 @@ class TerminalDOM {
 
         document.body.appendChild(measureDiv);
 
-        const height = isIE_7 ? fontHeight : measureDiv.clientHeight;
+        const height = /*isIE_7 ? fontHeight : */ measureDiv.clientHeight;
         const width = measureDiv.clientWidth;
 
         document.body.removeChild(measureDiv);
 
-        result = { w: width, h: height };
-        theMeasureCache.add(fontHeight, preFontFamily, text, result);
-
-        return result;
+        return { w: width, h: height };
     }
 
     static cssSelectorExists(selText) {
@@ -202,12 +216,9 @@ class TerminalDOM {
         return Math.ceil(height * reduction); // Note: pixels.
     }
 
-    static lineHeightCentersVertically() {
-        return true; // !is_iPad;
-    }
-
-    static getCharWidth(char, termLayout, preFontFamily ) {
-        return TerminalDOM.htmlMeasureText(termLayout._5250.fontSizePix, preFontFamily, char).w;
+    static getCharWidth(char, termLayout, fontFamily) {
+        const fontSize = parseFloat(TerminalDOM.getGlobalVarValue('--term-font-size'));
+        return TerminalDOM.htmlMeasureText(fontSize, fontFamily, char).w;
     }
 
     static alignInputText(input, height, fSize) {
@@ -260,10 +271,6 @@ class TerminalDOM {
             catch (ex) {
             }
         }
-    }
-
-    static clearCache() {
-        theMeasureCache.clear();
     }
 
     static getViewportDim(landscape) {
@@ -446,46 +453,28 @@ class TerminalDOM {
         el.setAttribute('spellcheck', false);
     }
 
-    findPreFontFamily() {
-        const el = document.createElement('pre');
-        document.body.appendChild(el);
-        let ff = TerminalDOM.getComputedStyle(el, 'font-family');
-        document.body.removeChild(el);
-
-        this.preFontFamily = this.replaceAll(ff, '"', "'");
-        return this.preFontFamily;
+    isValidMonospace(fontFamily) {
+        return TerminalDOM.htmlMeasureText(10, fontFamily, 'M').w === TerminalDOM.htmlMeasureText(10, fontFamily, 'i').w;
     }
 
-    replaceWithInputText(oldElement) {
-        let id = oldElement.id;
-        let position = oldElement.style.position ? oldElement.style.position : 'absolute';
-        let left = oldElement.style.left;
-        let top = oldElement.style.top;
-        let width = oldElement.style.width;
-        let height = oldElement.style.height;
-        let parent = oldElement.parentElement;
-
-        parent.removeChild(oldElement);
-        let newElement = document.createElement('input');
-        newElement.type = 'text';
-        newElement.id = id;
-        newElement.name = 'cursor';
-        newElement.style.position = position;
-        newElement.style.left = left;
-        newElement.style.top = top;
-        newElement.style.width = width;
-        newElement.style.height = height;
-
-        parent.appendChild(newElement);
-        return newElement;
+    static setGlobalVar(varname, varvalue) {
+        const cssVarRoot = document.documentElement.style;
+        if (cssVarRoot) {
+            cssVarRoot.setProperty(varname, varvalue);
+        }
+        let found = cssVarCache[varname] != null;
+        cssVarCache[varname] = varvalue;
+        if (!found) { cssVarCache.length++; }
     }
 
-    isValidMonospace() {
-        return TerminalDOM.htmlMeasureText(10, this.preFontFamily, "M").w === TerminalDOM.htmlMeasureText(10, this.preFontFamily, "i").w;
-    }
-
-    setPreFontFamily(fontFamily) {
-        this.preFontFamily = fontFamily;
+    static getGlobalVarValue(varname) {
+        if (cssVarCache[varname]) {
+            return cssVarCache[varname];
+        }
+        var cssVarRoot = window.getComputedStyle(document.body);
+        if (cssVarRoot) {
+            return cssVarRoot.getPropertyValue(varname);
+        }
     }
 
     static getElementByName(name) {
@@ -517,35 +506,67 @@ class TerminalDOM {
         return str;
     }
 
-    setTerminalFont(_5250Cursor) {
-        const requestedFontHeight = _5250Cursor.fontSizePix;
-        const termW = _5250Cursor.cursor.w * this.sample132.length;
+    setTerminalFont() {
+        const gridColWidth = parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'));
+        const t5250 = document.getElementById('AsnaTerm5250');
 
-        do {
-            if (TerminalDOM.htmlMeasureText(_5250Cursor.fontSizePix, this.preFontFamily, this.sample132).w <= termW) {
-                break;
+        if (t5250 && !isNaN(gridColWidth) && gridColWidth > 0.0) {
+            const fontFamily = TerminalDOM.getGlobalVarValue('--term-font-family');
+            const cachedFontSize = theFontSizeCache.get(fontFamily, gridColWidth);
+
+            if (cachedFontSize) {
+                TerminalDOM.setGlobalVar('--term-font-size', `${cachedFontSize}px`);
             }
+            else {
+                return new Promise((resolve) => {
+                    t5250.style.cursor = 'wait';
+                    let fontSize = parseFloat(TerminalDOM.getGlobalVarValue('--term-font-size'));
 
-            _5250Cursor.fontSizePix--;
+                    const a = document.createElement('pre');
+                    a.className = 'bterm-render-section';
+                    a.style.gridColumnStart = 79;               
+                    a.style.gridColumnEnd = 80;
+                    a.textContent = 'M';
+                    t5250.appendChild(a);
 
-        } while (_5250Cursor.fontSizePix > 0);
+                    const leftPadM = ' '.repeat(78) + 'M';
+                    let mb = TerminalDOM.measureHtmlPreSectionText(fontSize, leftPadM);
+                    let ra = TerminalDOM.getGridElementClientRight(a);
 
-        do {
-            const oneCharMeasure = TerminalDOM.htmlMeasureText(_5250Cursor.fontSizePix, this.preFontFamily, SAMPLE_ONE);
+                    if (mb.h > fontSize) { // The CSS value is too small ...
+                        fontSize = mb.h;
+                        TerminalDOM.setGlobalVar('--term-font-size', `${fontSize}px`);
+                        mb = TerminalDOM.measureHtmlPreSectionText(fontSize, leftPadM);
+                        ra = TerminalDOM.getGridElementClientRight(a);
+                    }
 
-            if (oneCharMeasure.h <= _5250Cursor.cursor.h) {
-                break;
+                    const t0 = performance.now();
+                    let t1 = t0;
+                    let iterations = 0;
+
+                    while (mb.w > ra && fontSize > 5.0 && (t1 - t0) < (10 * 1000)) {
+                        fontSize -= FONT_SIZE_TRY_INCREMENT;
+                        TerminalDOM.setGlobalVar('--term-font-size', `${fontSize}px`);
+                        ra = TerminalDOM.getGridElementClientRight(a);
+                        mb = TerminalDOM.measureHtmlPreSectionText(fontSize, leftPadM);
+                        t1 = performance.now();
+                        iterations++;
+                    }
+
+                    t5250.removeChild(a);
+                    theFontSizeCache.save(fontFamily, gridColWidth, fontSize);
+                    t5250.style.cursor = 'auto';
+
+                    resolve();
+                    if (_debug2) { console.log(`iterations:${iterations}`); }
+                });
             }
-
-            _5250Cursor.fontSizePix--;
-
-        } while (_5250Cursor.fontSizePix > 0);
-
-        if (_5250Cursor.fontSizePix <= 0) { // Defensive programming
-            _5250Cursor.fontSizePix = requestedFontHeight;
         }
+    }
 
-        _5250Cursor.cursor.w = TerminalDOM.htmlMeasureText(_5250Cursor.fontSizePix, this.preFontFamily, this.sample132).w / this.sample132.length;
+    static getGridElementClientRight(gridEl) {
+        const rect = gridEl.getBoundingClientRect();
+        return rect.right;
     }
 
     static getOutputElement(name) {
@@ -580,13 +601,11 @@ class TerminalToolbar {
         this.sBarErrMsgEl = null;
 
         this.toolbarFontSizePix = 0;
-        this.preFontFamily = '';
         this.designTimeStatusbarHtml = '';
     }
 
     create(termLayout, fontFamily, termColors) {
         this.toolbarFontSizePix = TerminalDOM.fontSizeForHeight(termLayout.status.h);
-        this.preFontFamily = fontFamily;
 
         this.statusBar = document.getElementById(ID.STATUSBAR);
         if (!statusbar) { return; }
@@ -594,13 +613,12 @@ class TerminalToolbar {
         this.designTimeStatusbarHtml = this.statusBar.innerHTML;
 
         const oneChar = 'M';
-        const oneBlank = ' ';
-        const gapToolbarItemsWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, this.preFontFamily, oneChar).w;
+        const gapToolbarItemsWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, fontFamily, oneChar).w;
 
         this.statusBar.style.left = '0px';
         this.statusBar.style.top = termLayout.status.t + 'px';
         this.statusBar.style.height = (termLayout.status.h + 1) + 'px'; // Width is 100% (CSS)
-        this.statusBar.style.fontFamily = this.preFontFamily;
+        this.statusBar.style.fontFamily = fontFamily;
         this.statusBar.style.fontSize = this.toolbarFontSizePix + 'px';
         this.statusBar.style.overflow = 'hidden';
         this.statusBar.style.display = 'block';
@@ -610,28 +628,28 @@ class TerminalToolbar {
         this.statusBar.style.color = termColors.statBarColor;
         this.statusBar.style.backgroundColor = termColors.statBarBkgdColor;
 
-        const insertStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, this.preFontFamily, Labels.get('InsertMode')).w;
-        const maxCoordStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, this.preFontFamily, MAX_COORD_STR).w;
-        const maxActFKeyStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, this.preFontFamily, AidKey.ToString(QSN.ENTER)).w;
-        const maxIndicatorStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, this.preFontFamily, Labels.get('KbdLocked')).w;
+        const insertStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, fontFamily, Labels.get('InsertMode')).w;
+        const maxCoordStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, fontFamily, MAX_COORD_STR).w;
+        const maxActFKeyStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, fontFamily, AidKey.ToString(QSN.ENTER)).w;
+        const maxIndicatorStrWidth = TerminalDOM.htmlMeasureText(this.toolbarFontSizePix, fontFamily, Labels.get('KbdLocked')).w;
 
         // Status bar window segments (right aligned)
-        this.sBarCursorPosEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.CURSOR_POS, 0, termLayout.w - maxCoordStrWidth, maxCoordStrWidth, termLayout.status.h, true);
+        this.sBarCursorPosEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.CURSOR_POS, 0, termLayout.w - maxCoordStrWidth, maxCoordStrWidth, termLayout.status.h, fontFamily);
         let offsetFromRight = maxCoordStrWidth + gapToolbarItemsWidth;
 
-        this.sBarInsertModeEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.INSERT_MODE, 0, termLayout.w - offsetFromRight - insertStrWidth, insertStrWidth, termLayout.status.h, true);
+        this.sBarInsertModeEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.INSERT_MODE, 0, termLayout.w - offsetFromRight - insertStrWidth, insertStrWidth, termLayout.status.h, fontFamily);
         offsetFromRight += insertStrWidth + gapToolbarItemsWidth;
 
-        this.sBarActFKeyEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.ACT_FKEY, 0, termLayout.w - offsetFromRight - maxActFKeyStrWidth, maxActFKeyStrWidth, termLayout.status.h, true);
+        this.sBarActFKeyEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.ACT_FKEY, 0, termLayout.w - offsetFromRight - maxActFKeyStrWidth, maxActFKeyStrWidth, termLayout.status.h, fontFamily);
         offsetFromRight += maxActFKeyStrWidth + gapToolbarItemsWidth;
 
         const lastRightAlignedPos = termLayout.w - offsetFromRight - maxIndicatorStrWidth;
-        this.sBarIndEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.INDICATORS, 0, lastRightAlignedPos, maxIndicatorStrWidth, termLayout.status.h, true);
+        this.sBarIndEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.INDICATORS, 0, lastRightAlignedPos, maxIndicatorStrWidth, termLayout.status.h, fontFamily);
 
         // Status bar window segments (left aligned)
         const msgIndIconWidth = termLayout.status.h + gapToolbarItemsWidth / 2;
         if (lastRightAlignedPos > msgIndIconWidth) {
-            this.sBarErrMsgEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.ERRMSG, 0, msgIndIconWidth, lastRightAlignedPos - msgIndIconWidth, termLayout.status.h, false);
+            this.sBarErrMsgEl = this.addToolbarChild(this.statusBar, TOOLBAR_ID.ERRMSG, 0, msgIndIconWidth, lastRightAlignedPos - msgIndIconWidth, termLayout.status.h, '');
         }
     }
 
@@ -714,7 +732,7 @@ class TerminalToolbar {
         }
     }
 
-    addToolbarChild(parent, id, top, left, width, height, useMonoFont) {
+    addToolbarChild(parent, id, top, left, width, height, fontFamily) {
         var child = document.createElement('div');
 
         if (typeof left === 'number' || Validate.digitsOnly(left)) {
@@ -742,16 +760,13 @@ class TerminalToolbar {
         child.style.top = top;
         child.style.width = width;
         child.style.height = height;
-        if (TerminalDOM.lineHeightCentersVertically()) {
-            child.style.lineHeight = height;
-        }
         child.style.fontSize = this.toolbarFontSizePix + 'px';
         child.style.overflow = 'hidden';
         child.style.backgroundColor = 'transparent';
         child.style.verticalAlign = 'middle';
 
-        if (useMonoFont) {
-            child.style.fontFamily = this.preFontFamily;
+        if (fontFamily) {
+            child.style.fontFamily = fontFamily;
         }
 
         TerminalDOM.makeUnselectable(child);
@@ -770,31 +785,68 @@ class TerminalToolbar {
     }
 }
 
-const MAX_CACHE_ENTRIES = 1000;
-
-class MeasureCache {
+class FontSizeCache {
     constructor() {
-        this.cache = [];
+        this.byFontFamily = [];
     }
-    static hash(fontHeight, preFontFamily, text) {
-        return StringExt.padRight(preFontFamily, 20, ' ') + fontHeight + text;
-    }
-    add(fontHeight, preFontFamily, text, measure) {
-        if (this.cache.length >= MAX_CACHE_ENTRIES) {
-            console.log('MeasureCache - too may entries!');
-            return;
+
+    save(fontFamily, gridColWidth, fontSize) {
+        let byWidth = [];
+        const key = FontSizeCache.keyHash(fontFamily);
+        if (!this.byFontFamily[key]) {
+            this.byFontFamily[key] = byWidth;
+            this.byFontFamily.length++;
         }
-        const hash = MeasureCache.hash(fontHeight, preFontFamily, text);
-        this.cache[hash] = measure;
+        else {
+            byWidth = this.byFontFamily[key];
+        }
+
+        const widthHash = FontSizeCache.fixFloat(gridColWidth);
+        const found = byWidth[widthHash] != null;
+        byWidth[widthHash] = fontSize;
+        if (!found) { byWidth.length++; }
     }
-    find(fontHeight, preFontFamily, text) {
-        const hash = MeasureCache.hash(fontHeight, preFontFamily, text);
-        return this.cache[hash];
+
+    get(fontFamily, gridColWidth) {
+        const fontFamilyKey = FontSizeCache.keyHash(fontFamily);
+        const colWidthKey = FontSizeCache.fixFloat(gridColWidth);
+
+        if (_debug) {
+            console.log(`Req fontSize for: ${fontFamilyKey} colW:${colWidthKey}`);
+        }
+
+        if (!this.byFontFamily[fontFamilyKey]) {
+            if (_debug) { console.log('** Empty cache!');  }
+            return null;
+        }
+
+        const result = this.byFontFamily[fontFamilyKey][colWidthKey];
+
+        if (_debug) {
+            if (result) {
+                console.log(`Found ${result} for: ${fontFamilyKey} colW:${colWidthKey}`);
+            }
+            //else {
+            //    console.log('Cache Dump:');
+            //    console.log(this.byFontFamily[fontFamilyKey]);
+            //}
+        }
+
+        return result;
     }
-    clear() {
-        this.cache = [];
+
+    static keyHash(fontFamily) {
+        let noCommas = fontFamily.replaceAll(',', '_');
+        let noSpaces = noCommas.replaceAll(' ', '_');
+        return noSpaces;
+    }
+
+    static fixFloat(num) {
+        return num.toFixed(4);
     }
 }
 
-const theMeasureCache = new MeasureCache();
 let landscapeDevHeight = NaN;
+let cssVarCache = [];
+
+const theFontSizeCache = new FontSizeCache();

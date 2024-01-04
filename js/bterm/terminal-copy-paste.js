@@ -10,6 +10,8 @@ export { theClipboard as Clipboard, thePasteText as PasteText, thePasteUI as Pas
 import { DialogPolyfill } from './terminal-dialog-polyfill.js';
 import { TerminalDOM } from './terminal-dom.js';
 
+const _debug = false;
+
 class Clipboard {
     constructor() {
         this.text = '';
@@ -22,12 +24,36 @@ class Clipboard {
             window.clipboardData.setData('Text', this.text);
         }
         else if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-            navigator.clipboard.writeText(this.text).then(function () {
-
-            }, function () {
-                    console.error('navigator.clipboard.writeText failed');
+            const type = 'text/plain';
+            const blob = new Blob([this.text], { type });
+            const data = [new ClipboardItem({ [type]: blob })];
+            navigator.permissions.query({ name: 'clipboard-write' }).then((permission) => {
+                if (permission.state === 'granted' || permission.state === 'prompt') {
+                    navigator.clipboard.write(data).then(
+                        this.clipboardWriteComplete, this.clipboardWriteRejected
+                    ).catch(this.clipboardWriteRejected);
+                }
+                else {
+                    this.clipboardWritePermissionDenied();
+                }
             });
         }
+    }
+
+    clipboardWriteComplete() {
+        if (_debug) { alert('clipboardWriteComplete!'); }
+
+        // Otherwise be silent, copy is expected to work.
+    }
+
+    clipboardWriteRejected() {
+        if (_debug) { alert('clipboardWriteRejected!'); } 
+
+        // If it failed, most likely the data given was rejected. Bug?
+    }
+
+    clipboardWritePermissionDenied() {
+        alert('Permission to access clipboard was denied.');
     }
 }
 

@@ -81,13 +81,15 @@ class TerminalHTML {
     <button id="AsnaTermEnterButton" class="AsnaTermIbmBigButton AsnaTermGoColorButton" type="button">Enter</button>
     <button id="AsnaTermResetButton" class="AsnaTermIbmBigButton AsnaTermWarningColorButton" type="button">Reset</button>
     <div id="AsnaTerm5250"></div>
-    <div id="AsnaTermCursor" tabindex="0" style="left:-100px;top:100px;"></div>
+    <input type="text" id="AsnaTermCursor" autocomplete="off" class="bterm-cursor" tabindex="0" />
 `;
         const div = document.createElement('div');
         div.id = 'AsnaTermFacade';
         div.style.touchAction = 'none';
 
         div.innerHTML = terminalMarkup;
+
+        // document.body.innerHTML = ''; // Reset contents ???
         document.body.appendChild(div);
     }
 }

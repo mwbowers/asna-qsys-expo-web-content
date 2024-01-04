@@ -11,6 +11,7 @@ import { Screen, ScreenAttr, Field  } from './terminal-screen.js';
 import { BufferMapping } from './buffer-mapping.js'
 import { CHAR_MEASURE, TerminalDOM } from './terminal-dom.js';
 import { StringExt } from '../string.js';
+import { DBCS } from './terminal-dbcs.js';
 
 // const _debug = true; // Comment line for production !!!
 
@@ -104,31 +105,27 @@ class TerminalRender {
     }
 
     createCanvasSection(frag, regScr, fromPos, toPos, row, col, bkColor, color, reverse, underscore) {
-
         const len = toPos - fromPos + 1;
+        let cols = len;
         const text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
         const rowStr = '' + row;
         const colStr = '' + col;
-        const vertPadding = TerminalRender.calcTextVertPadding(this.termLayout);
-        const section = document.createElement('div');
 
-        section.type = 'text';
+        if (DBCS.hasChinese(text)) {
+            cols = DBCS.calcDisplayLength(text)
+        }
+
+        const section = document.createElement('pre');
+
+        section.className = 'bterm-render-section';
         section.id = 'r' + StringExt.padLeft(rowStr, 2, '0') + 'c' + StringExt.padLeft(colStr, 3, '0');
-        section.style.fontFamily = this.preFontFamily;
-        section.style.fontSize = this.termLayout._5250.fontSizePix + 'px';
-        section.style.position = 'absolute';
-        section.style.left = (col * this.termLayout._5250.cursor.w) + 'px';
-        section.style.top = (this.termLayout._5250.t + (row * this.termLayout._5250.cursor.h)) + 'px';
-        // section.style.width = (this.termLayout._5250.cursor.w * len) + 'px';
-        section.style.height = (this.termLayout._5250.cursor.h - vertPadding + CHAR_MEASURE.UNDERSCORE_CHAR_HEIGHT) + 'px';
+        section.style.gridColumnStart = col + 1;
+        section.style.gridColumnEnd = col + 1 + cols;
+        section.style.gridRowStart = row + 1;
+        section.style.gridRowEnd = row + 1;
         section.setAttribute('data-asna-len', len);
 
-        TerminalDOM.makeUnselectable(section);
-        TerminalDOM.resetBoxStyle(section.style);
-
-        section.style.overflow = 'hidden';
-        section.style.paddingTop = vertPadding + 'px';
-        section.style.borderBottomWidth = CHAR_MEASURE.UNDERLINE_HEIGHT + 'px';
+        section.style.borderBottomWidth = CHAR_MEASURE.UNDERLINE_HEIGHT + 'px'; // ???
 
         this.setCanvasSectionText(section, text, bkColor, color, reverse, underscore, section.id === 'r19c006'); // Instrument for automated testing
 
@@ -203,8 +200,9 @@ class TerminalRender {
         else {
             section.style.borderBottomWidth = '0px';
         }
+        section.textContent = text;
 
-        TerminalRender.setDivText(section, text, this.preFontFamily, instTesting);
+        // TerminalRender.setDivText(section, text, /*this.preFontFamily,*/ instTesting);
     }
 
     completeEmptyFieldCanvasSections (frag, elRowCol) {
@@ -276,7 +274,7 @@ class TerminalRender {
         // Note: one 5250 field may be broken-down in more than one canvas sections (virtual fields).
         let childNode;
         for (let index = 0; (childNode=termSectionsParent.childNodes[index])!=null; index++) {
-            if (childNode.tagName === 'DIV' && childNode.getAttribute('data-asna-len')) {
+            if (childNode.tagName === 'PRE' && childNode.getAttribute('data-asna-len')) {
                 const virtField = TerminalRender.parseCanvasSectionId(childNode);
 
                 if (virtField.row >= fromRow && virtField.row <= toRow && Screen.isRowColInInputPos(this.regScr, virtField.row, virtField.col)) {
@@ -378,16 +376,6 @@ class TerminalRender {
         );
     }
 
-    static calcTextVertPadding(termLayout) {
-        const rowLeadHeight = termLayout._5250.cursor.h - CHAR_MEASURE.UNDERLINE_HEIGHT - CHAR_MEASURE.UNDERSCORE_CHAR_HEIGHT;
-
-        if (rowLeadHeight > termLayout._5250.fontSizePix) {
-            return rowLeadHeight - termLayout._5250.fontSizePix;
-        }
-
-        return 0;
-    }
-
     static setDivText(divEl, text, preFontFamily, instTesting) {
         const pre = document.createElement('pre');
         if (instTesting) {
@@ -462,7 +450,7 @@ class TerminalRender {
 
         for (let index = 0; term5250ParentElement.childNodes[index]; index++) {
             const childNode = term5250ParentElement.childNodes[index];
-            if (childNode.tagName === 'DIV' && childNode.getAttribute('data-asna-len')) {
+            if (childNode.tagName === 'PRE' && childNode.getAttribute('data-asna-len')) {
                 regenBufferSections[regenBufferSections.length] = childNode;
             }
         }
@@ -479,11 +467,20 @@ class TerminalRender {
         if (!candidate || candidate.tagName.toUpperCase() !== 'PRE') {
             return false;
         }
-        const divCandidate = candidate.parentElement;
-        if (!divCandidate || divCandidate.tagName.toUpperCase() !== 'DIV') {
-            return false;
+        return candidate.parentElement === term5250ParentElement;
+    }
+
+    static getTextfromBuffer(regScr, row, pos) {
+        const startRowPos = regScr.coordToPos(row, 0);
+        let text = '';
+        if (pos < startRowPos) {
+            return null;
         }
-        return divCandidate.parentElement === term5250ParentElement;
+
+        for (let currPos = startRowPos; currPos <= pos; currPos++) {
+            text += regScr.buffer[currPos] !== '\0' ? regScr.buffer[currPos] : ' ';
+        }
+        return { startPos: startRowPos, text: text };
     }
 
 }

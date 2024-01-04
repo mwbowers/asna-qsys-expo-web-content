@@ -14,6 +14,7 @@ const TEXT_SELECT_MODES = {
     COMPLETE: 'complete'
 };
 
+const _debug = false;
 
 class TextSelect {
     constructor(selectionElement) {
@@ -31,6 +32,7 @@ class TextSelect {
         this.anchor = null;
         this.selectedRect = null;
         this.hide();
+        if (_debug) { console.log('TextSelect.Reset .selectedRect = null'); }
     }
 
     positionElement(rect, color) {
@@ -58,12 +60,29 @@ class TextSelect {
     setPotentialSelection(pt) {
         this.anchor = pt;
         this.mode = TEXT_SELECT_MODES.POTENTIAL_SELECTION;
+
+        if (_debug) { console.log('TextSelect.setPotentialSelection this.anchor = pt'); }
     }
+
     setInProgress() {
         this.mode = TEXT_SELECT_MODES.IN_PROGRESS;
+        if (_debug) { console.log('TextSelect.setInProgress'); }
     }
     setComplete() {
         this.mode = TEXT_SELECT_MODES.COMPLETE;
+        if (_debug) { console.log('TextSelect.setComplete'); }
+    }
+
+    calcRect(pt, cursorDim) {
+        this.selectedRect = TextSelect.normalizeCoordRect(cursorDim, this.anchor, pt);
+        return this.selectedRect;
+    }
+
+    static getCursorDim(cursor) {
+        if (!cursor || !cursor.style || !cursor.style.width || !cursor.style.height) { return null; }
+        const w = parseFloat(cursor.style.width);
+        const h = parseFloat(cursor.style.height);
+        return { w: w, h: h }; 
     }
 
     static hasPointerMovedToStartSelection(cursorDim, dx, dy) {
@@ -100,6 +119,27 @@ class TextSelect {
             row: TextSelect.pixelToRow(cursorDim, point.y),
             col: TextSelect.pixelToCol(cursorDim, point.x)
         };
+    }
+
+    static log(s) {
+        if (!_debug) { return; }
+        console.log(s);
+    }
+
+    currentModeString() {
+        switch(this.mode)
+        {
+            case TEXT_SELECT_MODES.PASSIVE:
+                return 'PASSIVE';
+            case TEXT_SELECT_MODES.POTENTIAL_SELECTION:
+                return 'POTENTIAL_SELECTION';
+            case TEXT_SELECT_MODES.IN_PROGRESS:
+                return 'IN_PROGRESS';
+            case TEXT_SELECT_MODES.COMPLETE:
+                return 'COMPLETE';
+        }
+
+        return 'Undefined!!!';
     }
 }
 

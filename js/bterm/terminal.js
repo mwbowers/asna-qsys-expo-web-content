@@ -11,7 +11,7 @@ const FAKE_DUP = '*';
 
 import { TerminalHTML } from './terminal-html.js';
 import { TerminalMacros } from './terminal-macros.js';
-import { ID, ZINDEX, TerminalDOM, TerminalToolbar, CHAR_MEASURE } from './terminal-dom.js';
+import { ID, ZINDEX, TerminalDOM, TerminalToolbar } from './terminal-dom.js';
 import { Screen, Field, FieldFormatWord } from './terminal-screen.js';
 import { Base64, UnicodeToUTF8 } from '../base-64.js';
 import { TerminalRender  } from './terminal-render.js';
@@ -63,7 +63,6 @@ class Terminal {
         this.processDup = this.processDup.bind(this);
         this.processEnd = this.processEnd.bind(this);
         this.processErase = this.processErase.bind(this);
-        this.moveCursor = this.moveCursor.bind(this);
         this.processField = this.processField.bind(this);
         this.processFieldExit = this.processFieldExit.bind(this);
         this.processFieldExitEnter = this.processFieldExitEnter.bind(this);
@@ -119,7 +118,7 @@ class Terminal {
 
                 this.termLayout = {
                     w: NaN, h: NaN,
-                    _5250: { l: NaN, t: NaN, w: NaN, h: NaN, rows: NaN, cols: NaN, msgLight: false, fontSizePix: NaN, cursor: { w: NaN, h: NaN } },
+                    _5250: { l: NaN, t: NaN, w: NaN, h: NaN, rows: NaN, cols: NaN, msgLight: false, fontSizePix: NaN },
                     status: { l: NaN, t: NaN, w: NaN, h: NaN }
                 };
 
@@ -314,35 +313,27 @@ class Terminal {
     }
 
     render(arg) {
-    /*eslint-disable*/
-        if (false /* ASNA.Vendor.IsMobile() || ASNA.Vendor.IsWin8Touch() */) {
-            this.setScreenSize(24, 80, false);
-            this.resizeFcnt = function () { return { width: this.termLayout.w, height: this.termLayout.h }; };
+        if (typeof arg === 'function') {
+            this.resizeFcnt = arg;
         }
-        /*eslint-enable*/
-        else {
-            if (typeof arg === 'function') {
-                this.resizeFcnt = arg;
-            }
-            else if (typeof arg === 'object') {
-                if (typeof arg.width === 'undefined' || typeof arg.height === 'undefined') {
-                    alert('Terminal.Render(parameter error)');
-                    return;
-                }
-                this.resizeFcnt = function () { return { width: arg.width, height: arg.height }; };
-            }
-            else {
+        else if (typeof arg === 'object') {
+            if (typeof arg.width === 'undefined' || typeof arg.height === 'undefined') {
                 alert('Terminal.Render(parameter error)');
                 return;
             }
+            this.resizeFcnt = function () { return { width: arg.width, height: arg.height }; };
+        }
+        else {
+            alert('Terminal.Render(parameter error)');
+            return;
         }
 
         this.DOM = new TerminalDOM();
-        this.DOM.findPreFontFamily();
-        if (!this.DOM.isValidMonospace())
-            this.DOM.setPreFontFamily('Monospace');
+        if (!this.DOM.isValidMonospace(TerminalDOM.getGlobalVarValue('--term-font-family')))
+            TerminalDOM.setGlobalVar('--term-font-family', 'Consolas, monospace;');
 
         this.lookupTopElements();   // Firefox needs this explicit lookup.
+
         this.textSelect = new TextSelect(this.AsnaTermTextSelection);
 
         this.srcStatusbarHtml = document.getElementById(ID.STATUSBAR).innerHTML;
@@ -351,38 +342,32 @@ class Terminal {
 
         this.eventHandlingOperations('add');
 
-        if (true /* !ASNA.Vendor.IsMobile() */) {
-            TerminalRender.clearCanvas(this.AsnaTerm5250);
-        }
+        TerminalRender.clearCanvas(this.AsnaTerm5250);
 
-        // init();
         this.updateChromeColors(this.settingsStore.state.colors);
         this.initTerminal();
+
+        this.AsnaTerm5250.style.gridTemplateColumns = `repeat(${this.termLayout._5250.cols}, var(--term-col-width))`;
+        this.AsnaTerm5250.style.gridTemplateRows = `repeat(${this.termLayout._5250.rows}, var(--term-row-height))`;
+
         this.readSubmitResponse();
 
         this.saveInzFieldValues();
         this.saveManFillFieldValues();
         this.newPageCursorInit();
-        this.DOM.setTerminalFont(this.termLayout._5250);
 
-        this.DBCS = new DBCS(this.termLayout, this.DOM.preFontFamily);
+        const fontFamily = TerminalDOM.getGlobalVarValue('--term-font-family');
 
         this.toolbar = new TerminalToolbar();
-        this.toolbar.create(this.termLayout, this.DOM.preFontFamily, this.settingsStore.state.colors);
-        if (false /*ASNA.Vendor.IsMobile() || ASNA.Vendor.IsWin8Touch()*/) {
-            // ASNA.TouchableInput.Create(AsnaTerm5250, formatTable, fieldCount, termLayout, calcTextVertPadding(), CHAR_MEASURE.UNDERSCORE_CHAR_HEIGHT);
-        }
+        this.toolbar.create(this.termLayout, fontFamily, this.settingsStore.state.colors);
 
-        new TerminalRender(this.termLayout, this.settingsStore.state.colors, this.DOM.preFontFamily, this.regScr, this.dataSet, this.AsnaTerm5250).render();
+        new TerminalRender(this.termLayout, this.settingsStore.state.colors, fontFamily, this.regScr, this.dataSet, this.AsnaTerm5250).render();
         if (Keyboard.state === KEYBOARD_STATE.ERROR) {
             this.overlapErrorLine();
         }
 
         this.enterBigButton = new ActionButton(ID.ENTER_BIG_BUTTON, this.settingsStore, this.executeVirtualKey, 'ENTER');
         this.enterBigButton.init(Labels.get('KPAD_ENTER'), this.termLayout);
-        if (false /*ASNA.Vendor.IsMobile() || ASNA.Vendor.IsWin8Touch()*/) {
-            this.enterBigButton.showIfEnabled();
-        }
 
         this.resetBigButton = new ActionButton(ID.RESET_BIG_BUTTON, this.settingsStore, this.executeVirtualKey, 'RESET');
         this.resetBigButton.init(Labels.get('KPAD_RESET'), this.termLayout);
@@ -401,27 +386,14 @@ class Terminal {
 */
         IbmKeypad.init(this.AsnaTermFacade, this.termLayout, this.executeVirtualKey, this.actionMap, this.settingsStore);
 
-        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(this.termLayout), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
+        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
 
         Settings.init(ID.STATUSBAR, SETTINGS_OPENING_HEIGHT, this.settingsStore);
-/*
-        if (ASNA.Vendor.IsMobile() || ASNA.Vendor.IsWin8Touch()) {
-            _adjustForOrientation();
-        }
-*/
         IbmKeypad.initialLocation(this.termLayout, this.settingsStore.state.locations.ibmKeypad);
         if (this.settingsStore.state.show.ibmKeypad) {
             IbmKeypad.show();
         }
-        /*
-        if (ASNA.Vendor.DidNotResizeAfterRemovingKeyboard(termLayout._5250.h)) {
-            setTimeout(function () { rebuildPage(); _notifyUserCode(); }, 2000);
-        }
-        else {*/
-            this.pageReplacedNotifyUserCode();
-/*
-        }
-*/
+        this.pageReplacedNotifyUserCode();
     }
 
     renderStatusBar() {
@@ -537,19 +509,19 @@ class Terminal {
         this.beep = new Beep(ID.ERROR_SOUND);
 
         if (this.termCursor) {
-            if ( true /*ASNA.Vendor.IsDesktop() || ASNA.Vendor.IsWin8Touch() */) {
-                if (this.termCursor.tagName !== 'INPUT') {  // backwards compatibility
-                    this.termCursor = this.DOM.replaceWithInputText(this.termCursor);
-                }
+        //    if ( true /*ASNA.Vendor.IsDesktop() || ASNA.Vendor.IsWin8Touch() */) {
+        //        if (this.termCursor.tagName !== 'INPUT') {  // backwards compatibility
+        //            this.termCursor = this.DOM.replaceWithInputText(this.termCursor);
+        //        }
 
-                this.termCursor.maxLength = 1;
-                if (typeof (this.termCursor.autocomplete) !== 'undefined') {
-                    this.termCursor.autocomplete = 'off';
-                }
-            }
-            else {
-                this.termCursor.style.display = 'block';
-            }
+            this.termCursor.maxLength = 1;
+        //        if (typeof (this.termCursor.autocomplete) !== 'undefined') {
+        //            this.termCursor.autocomplete = 'off';
+        //        }
+        //    }
+        //    //else {
+        //    //    this.termCursor.style.display = 'block';
+        //    //}
         }
     }
 
@@ -580,22 +552,17 @@ class Terminal {
         this.termLayout._5250.msgLight = msgLight;
 
         if (this.termLayout.h > 0) {
-            this.termLayout.status.h = this.termLayout.h / (this.termLayout._5250.rows + 1); // Rows + Statusbar
+            const rowHeightPix = this.termLayout.h / (this.termLayout._5250.rows + 1); // Rows + Statusbar
+            this.termLayout.status.h = rowHeightPix;
 
-            let rowHeightPix = this.termLayout.status.h;
             let rowCellWidth = this.termLayout.w / this.termLayout._5250.cols;
 
-            this.termLayout._5250.w = rowCellWidth * this.termLayout._5250.cols;
-            this.termLayout._5250.h = rowHeightPix * this.termLayout._5250.rows;
-
-            this.termLayout._5250.cursor.w = rowCellWidth;
-            this.termLayout._5250.cursor.h = rowHeightPix;
-
-            this.termLayout._5250.fontSizePix = rowHeightPix - this.calcLineWidth(rowHeightPix); // font-size is adjusted later, by measuring width.
-            this.termLayout._5250.t = 0;
-
             this.termLayout.status.l = 0;
+            this.termLayout._5250.t = 0;
             this.termLayout.status.t = this.termLayout.h - this.termLayout.status.h;
+
+            TerminalDOM.setGlobalVar('--term-col-width', `${rowCellWidth}px`);
+            TerminalDOM.setGlobalVar('--term-row-height', `${rowHeightPix}px`);
         }
     }
 
@@ -1555,7 +1522,7 @@ class Terminal {
             let fldVal = this.dataSet.getFieldValue(fld);
 
             if (fld.dbcsType !== 'n') {
-                fldVal = this.DBCS.formatFieldValue(fldVal, fld.len, fld.dbcsType);
+                fldVal = DBCS.formatFieldValue(fldVal, fld.dbcsType);
             }
 
             if (runMandatoryValidation) {
@@ -1637,7 +1604,7 @@ class Terminal {
         new TerminalRender(
             this.termLayout,
             this.settingsStore.state.colors,
-            this.DOM.preFontFamily,
+            TerminalDOM.getGlobalVarValue('--term-font-family'),
             this.regScr,
             this.dataSet,
             this.AsnaTerm5250).render();
@@ -1647,7 +1614,7 @@ class Terminal {
         new TerminalRender(
             this.termLayout,
             this.settingsStore.state.colors,
-            this.DOM.preFontFamily,
+            TerminalDOM.getGlobalVarValue('--term-font-family'),
             this.regScr,
             this.dataSet,
             this.AsnaTerm5250).renderInputArea(fromPos, toPos);
@@ -1794,10 +1761,10 @@ class Terminal {
     }
 
     updateChromeColors(colors) {
-        const termRender = new TerminalRender(this.termLayout, colors, this.DOM.preFontFamily, this.regScr, this.dataSet, this.AsnaTerm5250);
+        const termRender = new TerminalRender(this.termLayout, colors, TerminalDOM.getGlobalVarValue('--term-font-family'), this.regScr, this.dataSet, this.AsnaTerm5250);
         this.AsnaTermFacade.style.backgroundColor = termRender.getWebColor('bkgd');
         this.AsnaTermFacade.style.backgroundColor = termRender.getWebColor('bkgd');
-        this.termCursor.style.backgroundColor = colors.cursor;
+        // this.termCursor.style.backgroundColor = colors.cursor;
         this.AsnaTermTextSelection.style.backgroundColor = colors.sel;
     }
 
@@ -1825,6 +1792,7 @@ class Terminal {
             this.setScreenSize(newSize.rows, newSize.cols, newSize.msgLight);
             this.initTerminal(newSize.msgLight);
         }
+        this.DOM.setTerminalFont();
 
         this.regScr.loadBuffer(stream.regenerationBuffer);
         this.regScr.loadAttributes(stream.regenBufferAttributes);
@@ -1943,21 +1911,21 @@ class Terminal {
 
         AsnaTermFacade.style.height = this.termLayout.h + 'px';
 
-        if (!isNaN(this.termLayout._5250.cols) && !isNaN(this.termLayout._5250.cursor.w)) {
-            this.termLayout._5250.l = 0;
+        if (!isNaN(this.termLayout._5250.cols)) {
+            this.termLayout._5250.l = 0; // ???
             this.termLayout._5250.t = 0;
 
-            this.termLayout._5250.w = this.termLayout._5250.cursor.w * this.termLayout._5250.cols;
-            this.termLayout._5250.h = this.termLayout._5250.cursor.h * this.termLayout._5250.rows;
+            this.termLayout._5250.w = TerminalDOM.getGlobalVarValue('--term-col-width') * this.termLayout._5250.cols;
+            this.termLayout._5250.h = TerminalDOM.getGlobalVarValue('--term-row-height') * this.termLayout._5250.rows;
 
-            this.AsnaTerm5250.style.width = this.termLayout._5250.w + 'px';
-            this.AsnaTerm5250.style.height = this.termLayout._5250.h + 'px';
+            //this.AsnaTerm5250.style.width = this.termLayout._5250.w + 'px';
+            //this.AsnaTerm5250.style.height = this.termLayout._5250.h + 'px';
             this.AsnaTerm5250.style.zIndex = ZINDEX.TERMINAL_5250_TEXT;
 
-            if (this.termLayout.w > this.termLayout._5250.w) {
-                this.termLayout._5250.l = (this.termLayout.w - this.termLayout._5250.w) / 2;
-                this.AsnaTerm5250.style.left = this.termLayout._5250.l + 'px';
-            }
+            //if (this.termLayout.w > this.termLayout._5250.w) {
+            //    this.termLayout._5250.l = (this.termLayout.w - this.termLayout._5250.w) / 2;
+            //    this.AsnaTerm5250.style.left = this.termLayout._5250.l + 'px';
+            //}
         }
     }
 
@@ -1968,55 +1936,37 @@ class Terminal {
         const rect = this.getRect(this.cursor.row, this.cursor.col, 1, 1);
         const nonChar = bkgChar === '\0' || sa && sa.screenAttr && sa.screenAttr.nonDisp;
 
-        this.termCursor.style.fontFamily = this.DOM.preFontFamily;
-        this.termCursor.style.fontSize = this.termLayout._5250.fontSizePix + 'px';
-        this.termCursor.style.backgroundColor = this.settingsStore.state.colors.cursor;
+        //this.termCursor.style.backgroundColor = this.settingsStore.state.colors.cursor;
 
-        this.termCursor.style.position = 'absolute';
-        this.termCursor.style.top = rect.t + 'px';
-        this.termCursor.style.left = rect.l + 'px';
+        this.termCursor.style.top = `${rect.t}px`;
+        this.termCursor.style.left = `${rect.l}px`;
+        let cursorWidth = rect.w;
 
-        this.termCursor.style.width = rect.w + 'px';
-
-        if (!nonChar) {
-            this.termCursor.style.width = TerminalDOM.getCharWidth(bkgChar, this.termLayout, this.DOM.preFontFamily) + 'px'; // Possibly DBCS
+        if (!nonChar && DBCS.isChinese(bkgChar)) {
+            cursorWidth *= 2;
         }
 
-        const subSectMetr = this.getSubSectionMetrics(this.cursor.row, pos - 1);
+        this.termCursor.style.width = `${cursorWidth}px`;
 
-        if (subSectMetr && subSectMetr.t) { // recalc .left
-            const map = new BufferMapping(this.termLayout._5250.cols);
+        const getTextResult = TerminalRender.getTextfromBuffer(this.regScr, this.cursor.row, pos - 1);
 
-            const lm = this.getRect(this.cursor.row, 0, 1, 1);
-            const colOffset = map.colFromPos(subSectMetr.pos);
-            const offsetX = colOffset * rect.w;
-            const substrW = TerminalDOM.htmlMeasureText(this.termLayout._5250.fontSizePix, this.DOM.preFontFamily, subSectMetr.t).w;
-
-            this.termCursor.style.left = (lm.l + offsetX + substrW) + 'px';
+        if (getTextResult && DBCS.hasChinese(getTextResult.text)) {
+            const dispLen = DBCS.calcDisplayLength(getTextResult.text);
+            const rRow = this.getRect(this.cursor.row, 0, 1, 1);
+            this.termCursor.style.left = `${rRow.l + dispLen * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'))}px`;
         }
 
-        this.termCursor.style.height = rect.h + 'px';
-
-        TerminalDOM.resetBoxStyle(this.termCursor.style);
-
-        if (false /*ASNA.Vendor.IsDesktop() || ASNA.Vendor.IsWin8Touch()*/) { // $TO-DO: check if cond should be: ! ASNA.Vendor.IsDesktop() || ASNA.Vendor.IsWin8Touch()
-            TerminalDOM.alignInputText(this.termCursor, rect.h, termLayout._5250.fontSizePix);
-        }
+        this.termCursor.style.height = `${rect.h}px`;
 
         if (nonChar) {
             bkgChar = ' ';
         }
 
-        if (true /*ASNA.Vendor.IsDesktop()*/) { // Don't do it for Mobile even if || ...Preference().phyKbd
-            this.termCursor.value = bkgChar;
-            if (this.termCursor.style.display !== 'none') {
-                this.termCursor.focus();
-            }
-            TerminalDOM.moveCaretPos(this.termCursor, 0);
+        this.termCursor.value = bkgChar;
+        if (this.termCursor.style.display !== 'none') {
+            this.termCursor.focus();
         }
-        else {
-            TerminalRender.setDivText(this.termCursor, bkgChar, this.DOM.preFontFamily);
-        }
+        TerminalDOM.moveCaretPos(this.termCursor, 0);
 
         if (dirtyInputFld && sa && sa.usage !== 'o' && sa.field) {
             sa.field.ffw.mdt = true;
@@ -2026,39 +1976,13 @@ class Terminal {
     }
 
     getRect(row, col, rows, cols) {
-        const vertPadding = TerminalRender.calcTextVertPadding(this.termLayout);
-        const height = this.termLayout._5250.cursor.h - vertPadding + CHAR_MEASURE.UNDERSCORE_CHAR_HEIGHT;
-        const top = this.termLayout._5250.t + BufferMapping.rowToPixel(row, this.termLayout) + vertPadding;
-        let rH = height * rows;
-
-        if (rows > 1) { // Rows are not adjacent.
-            const top2 = this.termLayout._5250.t + BufferMapping.rowToPixel(row + (rows - 1), this.termLayout) + vertPadding;
-            rH = top2 + height - top;
-        }
-
-        return { l: this.termLayout._5250.l + BufferMapping.colToPixel(col, this.termLayout), t: top, w: this.termLayout._5250.cursor.w * cols, h: rH };
-    }
-
-    getSubSectionMetrics(row, pos) {
-        const startRowPos = this.regScr.coordToPos(row, 0);
-        let startPos = NaN;
-        let text = '';
-        if (pos < startRowPos) {
-            return null;
-        }
-
-        for (let currPos = startRowPos; currPos <= pos; currPos++) {
-            if (this.regScr.buffer[currPos] === '\0' && this.regScr.attrMap[currPos].usage === 'o') {
-                text = '';
-            }
-            else {
-                if (!text) {
-                    startPos = currPos;
-                }
-                text += this.regScr.buffer[currPos] !== '\0' ? this.regScr.buffer[currPos] : ' ';
-            }
-        }
-        return { pos: startPos, t: text };
+        const rTerm = this.AsnaTerm5250.getBoundingClientRect();
+        return {
+            l: rTerm.x + BufferMapping.colToPixel(col, this.termLayout),
+            t: rTerm.y + BufferMapping.rowToPixel(row, this.termLayout),
+            w: parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')) * cols,
+            h: parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height')) * rows
+        };
     }
 
     setFocusAtCursor() {
@@ -2213,22 +2137,21 @@ class Terminal {
             dbcsType = sa.field.dbcsType;
 
             if (dbcsType === DBCS_TYPES.J || dbcsType === DBCS_TYPES.G) {
-                if (!this.DBCS.isWide(character)) {
+                if (!DBCS.isChinese(character)) {
                     this.setPreHelpError('0060');
                     return;
                 }
             }
             else if (dbcsType === 'n') {
-                if (this.DBCS.isWide(character)) {
+                if (DBCS.isChinese(character)) {
                     this.setPreHelpError('0061');
                     return;
                 }
             }
 
             if (dbcsType === DBCS_TYPES.E) {
-                const isWide = this.DBCS.isWide(character);
-                if (!this.isValidECharForFld(character, isWide, sa.field)) {
-                    this.setPreHelpError(_isDBCS(charW) ? '0061' : '0060');
+                if (!this.isValidECharForFld(DBCS.isChinese(character), sa.field)) {
+                    this.setPreHelpError(DBCS.isChinese(character) ? '0061' : '0060');
                     return;
                 }
             }
@@ -2294,15 +2217,15 @@ class Terminal {
         }
         else {
             if (this.regScr.buffer[pos] !== '\0') {
-                if (this.DBCS.isWide(character) && !this.DBCS.isWide(this.regScr.buffer[pos])) { // DBCS replaces 2 SBCS
+                if (DBCS.isChinese(character) && !DBCS.isChinese(this.regScr.buffer[pos])) { // DBCS replaces 2 SBCS
                     this.doDelete();
                 }
             }
         }
 
         this.writeTextAtCursor(character);
-        if (dbcsType !== 'n' && this.DBCS.isWide(character))
-            this.checkTruncateField(sa.field);
+        //if (dbcsType !== 'n' && DBCS.isChinese(character))
+        //    this.checkTruncateField(sa.field);
 
         let atDbcsEnd;
         if (autoEnter && this.isLastFieldPos(pos)) {
@@ -2318,7 +2241,7 @@ class Terminal {
                 new TerminalRender(
                     this.termLayout,
                     this.settingsStore.state.colors,
-                    this.DOM.preFontFamily,
+                    TerminalDOM.getGlobalVarValue('--term-font-family'),
                     this.regScr,
                     this.dataSet,
                     this.AsnaTerm5250).renderFieldFromCursorPos(this.cursor.row, this.cursor.col);
@@ -2348,7 +2271,7 @@ class Terminal {
         return Screen.isRowColInInputPos(this.regScr, this.cursor.row, this.cursor.col);
     }
     
-    isValidECharForFld(c, isWide, fld) {
+    isValidECharForFld(isWide, fld) {
         const fromPos = this.regScr.coordToPos(fld.row, fld.col);
         const value = Screen.copyPositionsFromBuffer(this.regScr, fromPos, fromPos + fld.len);
         value = value.trim();
@@ -2357,7 +2280,7 @@ class Terminal {
             return true;
         }
 
-        if (this.DBCS.isWide(value[0])) {
+        if (DBCS.isChinese(value[0])) {
             return isWide;
         } else {
             return !isWide;
@@ -2419,7 +2342,7 @@ class Terminal {
             new TerminalRender(
                 this.termLayout,
                 this.settingsStore.state.colors,
-                this.DOM.preFontFamily,
+                TerminalDOM.getGlobalVarValue('--term-font-family'),
                 this.regScr,
                 this.dataSet,
                 this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + 1);
@@ -2439,7 +2362,7 @@ class Terminal {
         const dbcsType = sa.field.dbcsType;
 
         if (dbcsType !== 'n' && dbcsType !== DBCS_TYPES.G) {
-            const isWide = DBCS.isWide(c);
+            const isWide = DBCS.isChinese(c);
             if (dbcsType === DBCS_TYPES.J && !isWide || (dbcsType === DBCS_TYPES.E && !this.isValidECharForFld(c, isWide, sa.field))) {
                 return false;
             }
@@ -2501,7 +2424,7 @@ class Terminal {
         new TerminalRender(
             this.termLayout,
             this.settingsStore.state.colors,
-            this.DOM.preFontFamily,
+            TerminalDOM.getGlobalVarValue('--term-font-family'),
             this.regScr,
             this.dataSet,
             this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + 1);
@@ -2535,31 +2458,31 @@ class Terminal {
         return index;
     }
 
-    checkTruncateField(fld) {
-        const value = this.dataSet.getFieldValue(fld);
-        const byM = this.DBCS.calcByteLen(value);
-        var mod = false;
+    //checkTruncateField(fld) {
+    //    const value = this.dataSet.getFieldValue(fld);
+    //    const byM = this.DBCS.calcByteLen(value);
+    //    var mod = false;
 
-        while (byM.bytes > fld.len && value.length > 0) {
-            mod = true;
-            value = value.substring(0, value.length - 1);
-            byM = this.DBCS.calcByteLen(value);
-        }
+    //    while (byM.bytes > fld.len && value.length > 0) {
+    //        mod = true;
+    //        value = value.substring(0, value.length - 1);
+    //        byM = this.DBCS.calcByteLen(value);
+    //    }
 
-        if (mod) {
-            // console.log('Need to truncate! old:' + temp + ' new:' + value);
+    //    if (mod) {
+    //        // console.log('Need to truncate! old:' + temp + ' new:' + value);
 
-            this.dataSet.setFieldValue(fld, value);
-            const pos = this.regScr.coordToPos(fld.row, fld.col);
-            new TerminalRender(
-                this.termLayout,
-                this.settingsStore.state.colors,
-                this.DOM.preFontFamily,
-                this.regScr,
-                this.dataSet,
-                this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + fld.len);
-        }
-    }
+    //        this.dataSet.setFieldValue(fld, value);
+    //        const pos = this.regScr.coordToPos(fld.row, fld.col);
+    //        new TerminalRender(
+    //            this.termLayout,
+    //            this.settingsStore.state.colors,
+    //            TerminalDOM.getGlobalVarValue('--term-font-family'),
+    //            this.regScr,
+    //            this.dataSet,
+    //            this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + fld.len);
+    //    }
+    //}
 
     isLastFieldPos(pos) {
         const fieldEndPos = this.regScr.peekOnePastEndOfFieldPos(pos);
@@ -2582,14 +2505,15 @@ class Terminal {
             return true;
         }
 
-        pos -= startFldPos;
-        const byM = calcByteLenDbcs(value, pos);
+        return false;
+        //pos -= startFldPos;
+        //const byM = calcByteLenDbcs(value, pos);
 
-        if (byM.lastState === 'd' && byM.bytes === fld.len - 1) { // + SI
-            return true;
-        }
+        //if (byM.lastState === 'd' && byM.bytes === fld.len - 1) { // + SI
+        //    return true;
+        //}
 
-        return byM.bytes >= fld.len; // Regardless of dbcs type ???
+        //return byM.bytes >= fld.len; // Regardless of dbcs type ???
     }
 
     moveToNextInputArea(row, col) {
@@ -2716,43 +2640,34 @@ class Terminal {
     }
 
     rebuildPage() {
-        TerminalDOM.clearCache();
         this.textSelect.reset();
         TerminalRender.clearCanvas(this.AsnaTerm5250);
         this.toolbar.removeToolbars();
 
         this.hideMsgIndicator();
         FKeyHotspot.remove();
-        //if (ASNA.Vendor.IsMobile()) {
-        //    ASNA.TouchableInput.Remove();
-        //}
         // ASNA.IbmKpad.Remove();
 
         this.adjustCanvasSize();
         this.setScreenSize(this.termLayout._5250.rows, this.termLayout._5250.cols, this.termLayout._5250.msgLight);
-        this.DOM.setTerminalFont(this.termLayout._5250);
+        this.DOM.setTerminalFont();
         this.toolbar = new TerminalToolbar();
-        this.toolbar.create(this.termLayout, this.DOM.preFontFamily, this.settingsStore.state.colors);
+        this.toolbar.create(this.termLayout, TerminalDOM.getGlobalVarValue('--term-font-family'), this.settingsStore.state.colors);
 
-        new TerminalRender(this.termLayout, this.settingsStore.state.colors, this.DOM.preFontFamily, this.regScr, this.dataSet, this.AsnaTerm5250).render();
+        new TerminalRender(this.termLayout, this.settingsStore.state.colors, TerminalDOM.getGlobalVarValue('--term-font-family'), this.regScr, this.dataSet, this.AsnaTerm5250).render();
 
         this.updateCursor();
         this.renderStatusBar();
 
         this.adjust_5250Div();
         Settings.init(ID.STATUSBAR, SETTINGS_OPENING_HEIGHT, this.settingsStore );
-        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(this.termLayout), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
+        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
         if (this.enterBigButton) {
             this.enterBigButton.calcLocation(this.termLayout);
         }
         if (this.resetBigButton) {
             this.resetBigButton.calcLocation(this.termLayout);
         }
-        /*
-        if (ASNA.Vendor.IsMobile() || ASNA.Vendor.IsWin8Touch()) {
-            ASNA.TouchableInput.Create(AsnaTerm5250, formatTable, fieldCount, termLayout, calcTextVertPadding(), underScoreCharHeight);
-        }
-        */
     }
 
     isReqFieldExitFld(fld) {
@@ -2819,6 +2734,7 @@ class Terminal {
 
         this.initTerminal();
         this.processServerResponse(stream);
+
         Keyboard.state = KEYBOARD_STATE.NORMAL;
         document.body.style.cursor = 'auto';
 
@@ -2890,6 +2806,9 @@ class Terminal {
 
     handlePointerMoveEvent(event) {
         if (!this.devicePointers || isNaN(this.termLayout.w) || !this.textSelect.anchor) {
+            if (!this.devicePointers) { TextSelect.log(`handlePointerMoveEvent: !this.devicePointers`); }
+            if (isNaN(this.termLayout.w)) { TextSelect.log(`handlePointerMoveEvent: isNaN(this.termLayout.w)`); }
+            if (isNaN(!this.textSelect.anchor)) { TextSelect.log(`handlePointerMoveEvent: !this.textSelect.anchor`); }
             return;
         }
         const pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
@@ -2898,12 +2817,20 @@ class Terminal {
             const dx = Math.abs(this.textSelect.anchor.x - pt.x);
             const dy = Math.abs(this.textSelect.anchor.y - pt.y);
 
-            if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && TextSelect.hasPointerMovedToStartSelection(this.termLayout._5250.cursor, dx, dy) ||
-                this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS) {
+            TextSelect.log(`handlePointerMoveEvent (not complete): ${this.textSelect.currentModeString()}`);
+
+            let potentialStart = false;
+            let cursorDim = TextSelect.getCursorDim(this.termCursor);
+            if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION) {
+                potentialStart = cursorDim && TextSelect.hasPointerMovedToStartSelection(cursorDim, dx, dy);
+                TextSelect.log(potentialStart ? `hasPointerMovedToStartSelection` : `NOT hasPointerMovedToStartSelection!!!`);
+            }
+
+            if (cursorDim && (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && potentialStart || this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS)) {
                 this.textSelect.setInProgress(); 
 
-                const selectedRect = this.textSelect.selectedRect = TextSelect.normalizeCoordRect(this.termLayout._5250.cursor, this.textSelect.anchor, pt);
-                const rect = this.getRect(selectedRect.row, selectedRect.col, selectedRect.rows, selectedRect.cols);
+                const sel = this.textSelect.calcRect(pt, cursorDim);
+                const rect = this.getRect(sel.row, sel.col, sel.rows, sel.cols);
 
                 this.textSelect.positionElement(rect, this.settingsStore.state.colors.sel);
                 this.cursor.hide();
@@ -2925,10 +2852,6 @@ class Terminal {
 
         const pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
 
-        // if (id != ASNA.TEConst.MOUSE_POINTER_ID) {
-        //    ASNA.FingerSwipe.PointerEnd();
-        // }
-
         if (this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS) {
             this.textSelect.setComplete();
             this.cursor.show();
@@ -2936,7 +2859,11 @@ class Terminal {
             this.activateInput();
         }
         else { // Just move the position to where the mouse is located.
-            const selectedCursorPos = TextSelect.getRowColFromPixel(this.termLayout._5250.cursor, pt);
+            const cursorDim = {
+                w: parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')),
+                h: parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'))
+            };
+            const selectedCursorPos = TextSelect.getRowColFromPixel(cursorDim, pt);
             this.textSelect.reset();
             if (Settings.close()) {
                 this.cursorKeyboardEventHandlingOperations('add');

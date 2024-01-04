@@ -2,16 +2,45 @@
    5250 Terminal Emulator
 \*-------------------------------------------*/
 
+:root {
+    --term-font-family: Consolas, monospace;
+    --term-font-size: 25px; /* Computed on initialization and updated when resizing. */
+    --term-col-width: 0; /* Computed on initialization. */
+    --term-row-height: 0; /* Computed on initialization. */
+}
+
 body {
     margin:0px;
     padding:0px;
 }
 
-pre {
-    font-family: Consolas, monospace; /* Consolas font is similar to IBM i Terminal Font */
+.bterm-render-section, .bterm-cursor {
+    font-family: var(--term-font-family);
+    font-size: var(--term-font-size);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    user-select: none;
 }
 
-#AsnaTermFacade {
+.bterm-render-section {
+    display: block;
+    white-space: pre;
+    overflow: hidden;
+    border-bottom-width: 1px; /* Used for underline */
+}
+
+.bterm-cursor {
+    position: absolute;
+    outline-style: none;
+    background-color: whitesmoke;
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+    z-index: 200;
+}
+
+#AsnaTermFacade { /* Do we need absolute??? */
     position: absolute;
     top: 0;
     left: 0;
@@ -23,16 +52,15 @@ pre {
 }
 
 #AsnaTerm5250 {
-    position: absolute;
-    left: 0;
-    top: 0;
+    display: grid;
+    align-items: center;
     margin: 0;
     border: 0;
     padding: 0;
     overflow: hidden;
 }
 
-#AsnaTermCursor {
+/*#AsnaTermCursor {
     position: absolute;
     left: 0;
     top: 0;
@@ -47,7 +75,7 @@ pre {
     border-radius: 0;
     z-index: 200;
 }
-
+*/
 .AsnaTermFldTouchableMask {
     position: absolute;
     left: 0;
