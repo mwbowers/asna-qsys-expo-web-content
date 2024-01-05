@@ -14,7 +14,7 @@ body {
     padding:0px;
 }
 
-.bterm-render-section, .bterm-cursor {
+.bterm-render-section, .bterm-render-section-dbyte, .bterm-cursor {
     font-family: var(--term-font-family);
     font-size: var(--term-font-size);
     margin: 0;
@@ -23,11 +23,15 @@ body {
     user-select: none;
 }
 
-.bterm-render-section {
+.bterm-render-section, .bterm-render-section-dbyte {
     display: block;
     white-space: pre;
     overflow: hidden;
     border-bottom-width: 1px; /* Used for underline */
+}
+
+.bterm-render-section-dbyte {
+    letter-spacing: 0.10rem;
 }
 
 .bterm-cursor {

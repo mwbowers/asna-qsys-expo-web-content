@@ -13,7 +13,7 @@ import { Validate } from './terminal-validate.js';
 import { TerminalRender } from './terminal-render.js';
 import { TerminalDOM } from './terminal-dom.js';
 
-// const _debug = true; // Comment line for production !!!
+const _debug = false;
 
 class Screen {
     constructor(rows, cols, msgLight) {
@@ -29,9 +29,9 @@ class Screen {
 
         this.cursorPos = {};
         this.size = { rows: rows, cols: cols, msgLight: msgLight ? msgLight : false };
-        this.mapping = new BufferMapping(this.size.cols);
+        this.mapping = new BufferMapping(this.size.cols, false);
 
-        if (typeof _debug !== 'undefined' ) {
+        if (_debug) {
             this.saveDebugState();
             this.handleDebugIntervalTimerEvent = this.handleDebugIntervalTimerEvent.bind(this);
             this.debugInterval = setInterval(this.handleDebugIntervalTimerEvent, 1000);
@@ -66,8 +66,8 @@ class Screen {
         return null;
     }
 
-    setMapping(cols) {
-        this.mapping = new BufferMapping(cols);
+    setMapping(cols, hasChinese) {
+        this.mapping = new BufferMapping(cols, hasChinese);
     }
 
     loadAttributes(a) {

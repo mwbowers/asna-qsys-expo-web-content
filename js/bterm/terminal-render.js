@@ -9,11 +9,17 @@ export { TerminalRender };
 
 import { Screen, ScreenAttr, Field  } from './terminal-screen.js';
 import { BufferMapping } from './buffer-mapping.js'
-import { CHAR_MEASURE, TerminalDOM } from './terminal-dom.js';
+import { CHAR_MEASURE } from './terminal-dom.js';
 import { StringExt } from '../string.js';
 import { DBCS } from './terminal-dbcs.js';
 
-// const _debug = true; // Comment line for production !!!
+const State = {
+    NO_SECTION: 'n',
+    SWITCH_ATTR: '+a',
+    COUNT_SAME_ATTR: '=a',
+    SWITCH_CHARSET: '+d',
+    COUNT_SAME_CHARSET: '=d'
+}
 
 class TerminalRender {
     constructor(termLayout, termColors, preFontFamily, regScr, dataSet, term5250ParentElement) {
@@ -23,11 +29,12 @@ class TerminalRender {
         this.regScr = regScr;
         this.dataSet = dataSet;
         this.term5250ParentElement = term5250ParentElement;
+        this.hasChinese = false;
     }
 
     render() {
         const fragment = document.createDocumentFragment();
-        let state = 'no section';
+        let state = State.NO_SECTION;
         let ch = '\0';
         let n = 0;
         let attr = new ScreenAttr('g', false, false, false, false, false);
@@ -36,29 +43,41 @@ class TerminalRender {
         let pos;
 
         for (pos = 0; pos < validLength; pos++) {
-            let newState = this.getCanvasSectState(ch, attr, this.regScr.buffer[pos], this.regScr.attrMap[pos].screenAttr, state);
+            const nextChar = this.regScr.buffer[pos];
+            const nextAttr = this.regScr.attrMap[pos].screenAttr;
+            if (DBCS.isChinese(nextChar)) { this.hasChinese = true; }
+            const newState = this.getCanvasSectState(ch, attr, nextChar, nextAttr, state);
 
-            if (newState === 'no section') {
+            if (newState === State.NO_SECTION) {
                 if (n > 0) {
                     this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
                 }
                 n = 0;
                 state = newState;
             }
-            else if (newState === 'switch attr') {
+            else if (newState === State.SWITCH_ATTR) {
                 if (n > 0) {
                     this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
                 }
                 n = 0;
-                state = 'count same attr';
+                state = State.COUNT_SAME_ATTR;
             }
-            else if (newState === 'count same attr') {
+            else if (newState === State.COUNT_SAME_ATTR || newState === State.COUNT_SAME_CHARSET) {
                 n = n + 1;
                 state = newState;
+            }
+            else if (newState === State.SWITCH_CHARSET) {
+                if (n > 0) {
+                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
+                }
+                n = 1;
+                state = State.COUNT_SAME_CHARSET;
             }
 
             ch = this.regScr.buffer[pos];
             attr = this.regScr.attrMap[pos].screenAttr;
+
+            if (DBCS.isChinese(ch)) { this.hasChinese = true; }
         }
 
         if (n > 0) {
@@ -72,33 +91,43 @@ class TerminalRender {
 
     getCanvasSectState(ch, attr, newCh, newAttr, currentState) {
         const chChanged = ch !== newCh;
-        const attrChanged = !this.isEqualAttr(attr, newAttr);
+        const attrChanged = !TerminalRender.isEqualAttr(attr, newAttr);
+        const charSetChanged = !TerminalRender.isEqualCharSet(ch, newCh);
 
-        if (currentState === 'count same attr' && attrChanged) {
+        if (currentState === State.COUNT_SAME_ATTR && attrChanged) {
             if (newCh === '\0' && this.isNormalAttr(newAttr)) {
-                return 'no section';
+                return State.NO_SECTION;
             }
-            return 'switch attr';
+            return State.SWITCH_ATTR;
+        }
+        else if ((currentState === State.COUNT_SAME_CHARSET || currentState === State.COUNT_SAME_ATTR) && charSetChanged) {
+            if (newCh === '\0' && this.isNormalAttr(newAttr)) {
+                return State.NO_SECTION;
+            }
+            return State.SWITCH_CHARSET;
         }
 
         if (chChanged && newCh === '\0' && this.isNormalAttr(newAttr)) {
-            return 'no section';
+            return State.NO_SECTION;
         }
-        else if (chChanged && !attrChanged) {
-            return 'count same attr';
+        else if (chChanged && !attrChanged && !charSetChanged) {
+            return State.COUNT_SAME_ATTR;
         }
         else if (!chChanged && attrChanged) {
-            if (currentState === 'count same attr') {
+            if (currentState === State.COUNT_SAME_ATTR) {
                 if (this.isNormalAttr(newAttr)) {
-                    return 'no section';
+                    return State.NO_SECTION;
                 }
-                return 'switch attr';
+                return State.SWITCH_ATTR;
             }
 
-            return 'count same attr';
+            return State.COUNT_SAME_ATTR;
         }
-        else if (chChanged) { // && attrChanged
-            return 'count same attr';
+        else if (chChanged) {
+            if (!charSetChanged) {
+                return State.COUNT_SAME_ATTR;
+            }
+            return State.COUNT_SAME_CHARSET;
         }
 
         return currentState;
@@ -108,17 +137,18 @@ class TerminalRender {
         const len = toPos - fromPos + 1;
         let cols = len;
         const text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
-        const rowStr = '' + row;
-        const colStr = '' + col;
+        const rowStr = `${row}`;
+        const colStr = `${col}`;
+        const isChinese = DBCS.hasChinese(text);
 
-        if (DBCS.hasChinese(text)) {
+        if (isChinese) {
             cols = DBCS.calcDisplayLength(text)
         }
 
         const section = document.createElement('pre');
 
-        section.className = 'bterm-render-section';
-        section.id = 'r' + StringExt.padLeft(rowStr, 2, '0') + 'c' + StringExt.padLeft(colStr, 3, '0');
+        section.className = ! isChinese ? 'bterm-render-section' : 'bterm-render-section-dbyte';
+        section.id = `r${StringExt.padLeft(rowStr, 2, '0')}c${StringExt.padLeft(colStr, 3, '0') }`;
         section.style.gridColumnStart = col + 1;
         section.style.gridColumnEnd = col + 1 + cols;
         section.style.gridRowStart = row + 1;
@@ -140,10 +170,10 @@ class TerminalRender {
             return;
         }
 
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.hasChinese);
 
         let row = map.rowFromPos(fromPos);
-        let col = map.colFromPos(fromPos);
+        let col = map.colFromPos(fromPos, this.regScr.buffer);
 
         if (this.regScr.attrMap[fromPos].usage !== 'o') {
             const inputField = this.regScr.attrMap[fromPos].field;
@@ -228,24 +258,24 @@ class TerminalRender {
             return;
         }
 
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.hasChinese);
 
         for (let i = 0, l = missing.length; i < l; i++) {
             const rowCol = missing[i];
             const pos = map.coordToPos(rowCol.row, rowCol.col);
-            const fld = TerminalRender.lookupFieldWithPosition(pos, this.termLayout, this.dataSet);
+            const fld = TerminalRender.lookupFieldWithPosition(pos, this.termLayout, this.dataSet, this.hasChinese);
             if (!fld) { continue; /* should never happen */ }
             this.createCanvasSectGroup(frag, pos, pos + fld.len - 1, []);
         }
     }
 
     renderInputCanvasSections(termSectionsParent, fromPos, toPos) {
-        let fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet);
-        const toField = TerminalRender.lookupFieldWithPosition(toPos, this.termLayout, this.dataSet);
+        let fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet, this.hasChinese);
+        const toField = TerminalRender.lookupFieldWithPosition(toPos, this.termLayout, this.dataSet, this.hasChinese);
 
         while (!fromFld && fromPos < toPos) {
             fromPos = fromPos + 1;
-            fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet);
+            fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet, this.hasChinese);
         }
 
         if (!fromFld) {
@@ -323,7 +353,7 @@ class TerminalRender {
         this.renderInputCanvasSections(this.term5250ParentElement, fromPos, toPos);
     }
 
-    isEqualAttr(attr, newAttr) {
+    static isEqualAttr(attr, newAttr) {
         if (!attr && newAttr || attr && !newAttr) {
             return false;
         }
@@ -333,6 +363,16 @@ class TerminalRender {
             attr.blink === newAttr.blink &&
             attr.nonDisp === newAttr.nonDisp &&
             attr.colSep === newAttr.colSep;
+    }
+
+    static isEqualCharSet(ch, newCh) {
+        if (ch === newCh || ch === '\0' || newCh === '\0') {
+            return true;
+        }
+        const a = DBCS.isChinese(ch) && DBCS.isChinese(newCh);
+        const b = !DBCS.isChinese(ch) && !DBCS.isChinese(newCh);
+
+        return  a || b;
     }
 
     isNormalAttr(attr) {
@@ -391,8 +431,8 @@ class TerminalRender {
         divEl.appendChild(pre);
     }
 
-    static lookupFieldWithPosition(pos, termLayout, dataSet) {
-        const map = new BufferMapping(termLayout._5250.cols);
+    static lookupFieldWithPosition(pos, termLayout, dataSet, hasChinese) {
+        const map = new BufferMapping(termLayout._5250.cols, hasChinese);
         const formatTable = dataSet.formatTable;
 
         if (!formatTable) {
@@ -420,21 +460,8 @@ class TerminalRender {
             [/"/g, "&quot;"]
         ];
 
-        let before, after;
-        if (typeof _debug !== 'undefined') {
-            before = text.length;
-        }
-
         for (var item in findReplace) {
             text = text.replace(findReplace[item][0], findReplace[item][1]);
-        }
-
-        if (typeof _debug !== 'undefined') {
-            after = text.length;
-
-            if (before !== after) {
-                console.log(`Text was escaped! ${before} -> ${after}`);
-            }
         }
 
         return text;

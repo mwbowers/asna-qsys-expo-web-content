@@ -695,7 +695,7 @@ class Terminal {
         const toPos = selRange.to;
         let pos = selRange.from;
         let text = '';
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         while (pos <= toPos) {
             const rowBefore = map.rowFromPos(pos);
@@ -735,7 +735,7 @@ class Terminal {
         const toPos = selRange.to;
 
 
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         while (pos <= toPos) {
             const colBefore = map.colFromPos(pos);
@@ -1117,7 +1117,7 @@ class Terminal {
     }
 
     processNewLine() {
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         const initialPos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
         this.cursor.col = 0;
@@ -1224,7 +1224,7 @@ class Terminal {
 
         let fromPos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
         let pos = fromPos;
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         if (nonbreaking && nonbreaking === 'nb') {
             let done = false;
@@ -1808,7 +1808,7 @@ class Terminal {
         if (stream.errorRegenerationBuffer && stream.errorRegenerationBuffer.length > 0) {
             this.errScr = new Screen(newSize.rows, newSize.cols, newSize.msgLight);
             this.errScr.loadBuffer(stream.errorRegenerationBuffer);
-            this.errScr.setMapping(newSize.cols);
+            this.errScr.setMapping(newSize.cols, false);
             this.errScr.loadAttributes(stream.errorAttributes);
             this.errScr.loadCursorPosition(stream.errorCursorPosition);
         }
@@ -2249,7 +2249,7 @@ class Terminal {
             else if (this.autoAdvance && (!this.isCursorInInputPos() || (dbcsType !== 'n' && (atDbcsEnd = this.atDbcsFieldFullPos(sa.field))))) {
                 if (atDbcsEnd) {
                     const tmpPos = coordToPos(sa.field.row, sa.field.col) + sa.field.len;
-                    const map = new BufferMapping(this.termLayout._5250.cols);
+                    const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
                     this.cursor.setPosition(map.rowFromPos(tmpPos), map.colFromPos(tmpPos));
                 }
                 this.moveToNextInputArea(this.cursor.row, this.cursor.col);
@@ -2558,7 +2558,7 @@ class Terminal {
     }
 
     moveToPos(pos, dirtyInputFld) {
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
         this.updateCursor(dirtyInputFld);
@@ -2964,7 +2964,7 @@ class Terminal {
     }
 
     addNewLineRowChanged(pos, rowBefore) {
-        const map = new BufferMapping(this.termLayout._5250.cols);
+        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
 
         if (map.rowFromPos(pos) > rowBefore) {
             return '\r\n';
