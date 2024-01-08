@@ -7,6 +7,7 @@
     --term-font-size: 25px; /* Computed on initialization and updated when resizing. */
     --term-col-width: 0; /* Computed on initialization. */
     --term-row-height: 0; /* Computed on initialization. */
+    --term-dbyte-letter-spacing: 0; /* Computed when redering double-byte data */
 }
 
 body {
@@ -31,7 +32,7 @@ body {
 }
 
 .bterm-render-section-dbyte {
-    letter-spacing: 0.10rem;
+    letter-spacing: var(--term-dbyte-letter-spacing);
 }
 
 .bterm-cursor {

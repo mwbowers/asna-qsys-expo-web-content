@@ -12,6 +12,9 @@ import { BufferMapping } from './buffer-mapping.js'
 import { CHAR_MEASURE } from './terminal-dom.js';
 import { StringExt } from '../string.js';
 import { DBCS } from './terminal-dbcs.js';
+import { TerminalDOM } from './terminal-dom.js';
+
+const DBYTE_LETTER_SPACING_TRY_INCREMENT = 0.1;
 
 const State = {
     NO_SECTION: 'n',
@@ -87,6 +90,10 @@ class TerminalRender {
         this.completeEmptyFieldCanvasSections(fragment, elRowCol);
 
         this.term5250ParentElement.appendChild(fragment);
+
+        if (this.hasChinese) {
+            this.adjustDblByteLetterSpacing();
+        }
     }
 
     getCanvasSectState(ch, attr, newCh, newAttr, currentState) {
@@ -267,6 +274,49 @@ class TerminalRender {
             if (!fld) { continue; /* should never happen */ }
             this.createCanvasSectGroup(frag, pos, pos + fld.len - 1, []);
         }
+    }
+
+    adjustDblByteLetterSpacing() {
+        const dbyteCollection = this.term5250ParentElement.querySelectorAll(`pre[class~=bterm-render-section-dbyte]`);
+        if (!dbyteCollection) { return; }
+        let max = 0;
+        let maxEl = null;
+        for (let i = 0, l = dbyteCollection.length; i < l; i++) {
+            const el = dbyteCollection[i];
+            const text = el.innerText;
+            const len = text.length;
+            if ( len > max ) {
+                maxEl = el;
+            }
+            max = Math.max(max, len);
+        }
+        if (!max || max === 1 || !maxEl) { return; }
+
+        let letterSpacing = 0; // Start with no-spacing as well known value.
+        TerminalDOM.setGlobalVar('--term-dbyte-letter-spacing', `${letterSpacing}px`);
+
+        const saveCssPosition = maxEl.style.position;
+        const saveCssWidth = maxEl.style.width;
+
+        // Use "maxEl" to test 'natural' metrics.
+        maxEl.style.position = 'absolute';
+        maxEl.style.width = 'auto';
+
+        const expectedWidth = maxEl.innerText.length * (2 * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')));
+        const t0 = performance.now();
+
+        while (maxEl.clientWidth < expectedWidth) {
+            letterSpacing += DBYTE_LETTER_SPACING_TRY_INCREMENT;
+            TerminalDOM.setGlobalVar('--term-dbyte-letter-spacing', `${letterSpacing}px`);
+
+            if (performance.now() - t0 > 10 * 1000) {
+                break;
+            }
+        }
+
+        // Restore Grid layout for "maxEl" element.
+        maxEl.style.position = saveCssPosition;
+        maxEl.style.width = saveCssWidth;
     }
 
     renderInputCanvasSections(termSectionsParent, fromPos, toPos) {
