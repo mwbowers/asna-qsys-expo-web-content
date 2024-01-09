@@ -285,7 +285,7 @@ class TerminalRender {
         let maxEl = null;
         for (let i = 0, l = dbyteCollection.length; i < l; i++) {
             const el = dbyteCollection[i];
-            const text = el.innerText;
+            const text = StringExt.trim(el.innerText);
             const len = text.length;
             if ( len > max ) {
                 maxEl = el;
@@ -304,7 +304,8 @@ class TerminalRender {
         maxEl.style.position = 'absolute';
         maxEl.style.width = 'auto';
 
-        const expectedWidth = maxEl.innerText * (2 * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')));
+        const text = StringExt.trim(maxEl.innerText);
+        const expectedWidth = text.length * (2 * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')));
         const t0 = performance.now();
 
         while (maxEl.clientWidth < expectedWidth) {
