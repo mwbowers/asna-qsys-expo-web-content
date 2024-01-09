@@ -180,7 +180,7 @@ class TerminalDOM {
         if (!document.styleSheets) { return false; }
 
         for (let i = 0; i < document.styleSheets.length; i++) {
-            var ss = document.styleSheets[i];
+            const ss = document.styleSheets[i];
             if (!ss.cssRules)
                 continue;
             for (let j = 0; j < ss.cssRules.length; j++) {
@@ -394,8 +394,8 @@ class TerminalDOM {
                 el.className = value;
 
             } else {
-                var className = ' ' + el.className + ' ';
-                var setClass = el.className;
+                const className = ' ' + el.className + ' ';
+                let setClass = el.className;
 
                 for (let c = 0, cl = classNames.length; c < cl; c++) {
                     if (className.indexOf(' ' + classNames[c] + ' ') < 0) {
@@ -417,8 +417,8 @@ class TerminalDOM {
 
         if (el.nodeType === 1 && el.className) {
             if (value) {
-                var className = (' ' + el.className + ' ').replace(rclass, ' ');
-                for (var c = 0, cl = classNames.length; c < cl; c++) {
+                let className = (' ' + el.className + ' ').replace(rclass, ' ');
+                for (let c = 0, cl = classNames.length; c < cl; c++) {
                     className = className.replace(' ' + classNames[c] + ' ', ' ');
                 }
                 el.className = StringExt.trim(className);
@@ -471,7 +471,7 @@ class TerminalDOM {
         if (cssVarCache[varname]) {
             return cssVarCache[varname];
         }
-        var cssVarRoot = window.getComputedStyle(document.body);
+        const cssVarRoot = window.getComputedStyle(document.body);
         if (cssVarRoot) {
             return cssVarRoot.getPropertyValue(varname);
         }
@@ -493,7 +493,7 @@ class TerminalDOM {
     }
 
     replaceAll(str, oldChar, newChar) {
-        var i = -1;
+        let i = -1;
 
         if (typeof str !== 'string') {
             return str;
@@ -733,7 +733,7 @@ class TerminalToolbar {
     }
 
     addToolbarChild(parent, id, top, left, width, height, fontFamily) {
-        var child = document.createElement('div');
+        let child = document.createElement('div');
 
         if (typeof left === 'number' || Validate.digitsOnly(left)) {
             left = left + 'px';

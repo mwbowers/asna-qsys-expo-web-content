@@ -143,9 +143,11 @@ class TerminalRender {
     createCanvasSection(frag, regScr, fromPos, toPos, row, col, bkColor, color, reverse, underscore) {
         const len = toPos - fromPos + 1;
         let cols = len;
-        const text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
+        let text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
         const rowStr = `${row}`;
         const colStr = `${col}`;
+
+        text = TerminalRender.normalizeBlanks(text);
         const isChinese = DBCS.hasChinese(text);
 
         if (isChinese) {
@@ -251,7 +253,7 @@ class TerminalRender {
             const fld = formatTable[i];
             let found = false;
             for (let j = 0, l = elRowCol.length; j < l; j++) {
-                var rowCol = elRowCol[j];
+                const rowCol = elRowCol[j];
                 if (fld.row === rowCol.row && fld.col === rowCol.col) {
                     found = true;
                     break;
@@ -302,7 +304,7 @@ class TerminalRender {
         maxEl.style.position = 'absolute';
         maxEl.style.width = 'auto';
 
-        const expectedWidth = maxEl.innerText.length * (2 * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')));
+        const expectedWidth = maxEl.innerText * (2 * parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')));
         const t0 = performance.now();
 
         while (maxEl.clientWidth < expectedWidth) {
@@ -401,6 +403,9 @@ class TerminalRender {
 
     renderInputArea(fromPos, toPos) {
         this.renderInputCanvasSections(this.term5250ParentElement, fromPos, toPos);
+        if (this.hasChinese) {
+            this.adjustDblByteLetterSpacing();
+        }
     }
 
     static isEqualAttr(attr, newAttr) {
@@ -423,6 +428,16 @@ class TerminalRender {
         const b = !DBCS.isChinese(ch) && !DBCS.isChinese(newCh);
 
         return  a || b;
+    }
+
+    static normalizeBlanks(text) {
+        let result = '';
+        const l = text.length;
+        for (let i = 0; i < l; i++) {
+            const ch = text[i];
+            result += ch === '\0'? ' ' : ch;
+        }
+        return result;
     }
 
     isNormalAttr(attr) {
@@ -510,7 +525,7 @@ class TerminalRender {
             [/"/g, "&quot;"]
         ];
 
-        for (var item in findReplace) {
+        for (let item in findReplace) {
             text = text.replace(findReplace[item][0], findReplace[item][1]);
         }
 

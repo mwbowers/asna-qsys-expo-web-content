@@ -54,7 +54,7 @@ class ErrorCondition {
             regScr.buffer[posDest] = otherScr.buffer[posOrig];
 
             const sa = otherScr.attrMap[posOrig].screenAttr;
-            var newSa = null;
+            let newSa = null;
 
             if (sa) {
                 newSa = new ScreenAttr(sa.color, sa.reverse, sa.underscore, sa.blink, sa.nonDisp, sa.colSep);

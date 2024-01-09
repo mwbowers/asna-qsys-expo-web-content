@@ -163,7 +163,7 @@ class ColorSettingsUI {
     }
 
     readColors() {
-        var newColors = {};
+        let newColors = {};
         let color;
 
         color = this.getColorFromInput(ID.COLOR_GREEN);
@@ -943,9 +943,9 @@ class ColorConversions {
     }
 
     static hexstr(number) {
-        var chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
-        var low = number & 0xf;
-        var high = (number >> 4) & 0xf;
+        const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+        const low = number & 0xf;
+        const high = (number >> 4) & 0xf;
         return '' + chars[high] + chars[low];
     }
 

@@ -30,6 +30,7 @@ class Screen {
         this.cursorPos = {};
         this.size = { rows: rows, cols: cols, msgLight: msgLight ? msgLight : false };
         this.mapping = new BufferMapping(this.size.cols, false);
+        this.hasDByte = false;
 
         if (_debug) {
             this.saveDebugState();
@@ -564,27 +565,25 @@ class FieldFormatWord {
         // http://publib.boulder.ibm.com/infocenter/iseries/v6r1m0/index.jsp?topic=/apis/dsm1f.htm Set Field (QsnSetFld) API
         //
         // Note: IBM counts bits from left to right, bit 15 is bit 0
-        var checksum = (ffw & 0xc000) >>> 14;
+        const checksum = (ffw & 0xc000) >>> 14;
 
         if (checksum !== 1) { // Must be: 0x01 
             return undefined;
         }
 
-        var bypass = ((ffw & 0x2000) >>> 13) != 0;  // Bit 2
-        var dup = ((ffw & 0x1000) >>> 12) != 0;  // Bit 3
-        var mdt = ((ffw & 0x800) >>> 11) != 0;  // Bit 4
-        var se = (ffw & 0x700) >>> 8;           // Bits 5-7
+        const bypass = ((ffw & 0x2000) >>> 13) != 0;  // Bit 2
+        const dup = ((ffw & 0x1000) >>> 12) != 0;  // Bit 3
+        const mdt = ((ffw & 0x800) >>> 11) != 0;  // Bit 4
+        const se = (ffw & 0x700) >>> 8;           // Bits 5-7
 
-        var shiftEdit = new ShiftEditSpec(se === 0, se === 0x01, se === 0x02, se === 0x03, se === 0x04, se === 0x05, se === 0x06, se === 0x07);
+        const shiftEdit = new ShiftEditSpec(se === 0, se === 0x01, se === 0x02, se === 0x03, se === 0x04, se === 0x05, se === 0x06, se === 0x07);
 
-        var autoEnter = ((ffw & 0x80) >>> 7) != 0; // Bit  8
-        var fieldExitReq = ((ffw & 0x40) >>> 6) != 0; // Bit  9
-        var monocase = ((ffw & 0x20) >>> 5) != 0; // Bit 10
-        var me = ((ffw & 0x08) >>> 3) != 0; // Bit 12
-
-        var caMf = ffw & 0x7;   // Bits 13-15
-
-        var mf = new AdjustFill(caMf === 0x0, caMf === 0x5, caMf === 0x6, caMf === 0x7);
+        const autoEnter = ((ffw & 0x80) >>> 7) != 0; // Bit  8
+        const fieldExitReq = ((ffw & 0x40) >>> 6) != 0; // Bit  9
+        const monocase = ((ffw & 0x20) >>> 5) != 0; // Bit 10
+        const me = ((ffw & 0x08) >>> 3) != 0; // Bit 12
+        const caMf = ffw & 0x7;   // Bits 13-15
+        const mf = new AdjustFill(caMf === 0x0, caMf === 0x5, caMf === 0x6, caMf === 0x7);
 
         return new FieldFormatWord(bypass, dup, mdt, shiftEdit, autoEnter, fieldExitReq, monocase, me, mf);
     }

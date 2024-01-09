@@ -169,7 +169,7 @@ class Keyboard {
             }
             else if (key.code >= 112 && key.code <= 123) {   // Function keys: "F1" -> "F12"
 
-                var num = key.code - 112 + 1;
+                let num = key.code - 112 + 1;
 
                 if (key.shiftKey) {
                     num += 12;

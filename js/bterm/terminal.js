@@ -118,7 +118,7 @@ class Terminal {
 
                 this.termLayout = {
                     w: NaN, h: NaN,
-                    _5250: { l: NaN, t: NaN, w: NaN, h: NaN, rows: NaN, cols: NaN, msgLight: false, fontSizePix: NaN },
+                    _5250: { l: NaN, t: NaN, w: NaN, h: NaN, rows: NaN, cols: NaN, msgLight: false },
                     status: { l: NaN, t: NaN, w: NaN, h: NaN }
                 };
 
@@ -361,7 +361,9 @@ class Terminal {
         this.toolbar = new TerminalToolbar();
         this.toolbar.create(this.termLayout, fontFamily, this.settingsStore.state.colors);
 
-        new TerminalRender(this.termLayout, this.settingsStore.state.colors, fontFamily, this.regScr, this.dataSet, this.AsnaTerm5250).render();
+        const renderer = new TerminalRender(this.termLayout, this.settingsStore.state.colors, fontFamily, this.regScr, this.dataSet, this.AsnaTerm5250);
+        renderer.render();
+        this.regScr.hasDByte = renderer.hasChinese;
         if (Keyboard.state === KEYBOARD_STATE.ERROR) {
             this.overlapErrorLine();
         }
@@ -695,7 +697,7 @@ class Terminal {
         const toPos = selRange.to;
         let pos = selRange.from;
         let text = '';
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         while (pos <= toPos) {
             const rowBefore = map.rowFromPos(pos);
@@ -735,7 +737,7 @@ class Terminal {
         const toPos = selRange.to;
 
 
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         while (pos <= toPos) {
             const colBefore = map.colFromPos(pos);
@@ -785,9 +787,9 @@ class Terminal {
     doBackSpace(newRow, newCol) {
         const newPos = this.regScr.coordToPos(newRow, newCol);
         const inputArea = this.regScr.getInputAreaAt(newPos);
-        var inputstr = this.regScr.copyInputBuffer(inputArea);
-        var relNewPos = newPos - inputArea.initialPos;
-        var newInputStr;
+        const inputstr = this.regScr.copyInputBuffer(inputArea);
+        const relNewPos = newPos - inputArea.initialPos;
+        let newInputStr;
 
         if (relNewPos > 0) {
             newInputStr = inputstr.substring(0, relNewPos) + inputstr.substring(relNewPos + 1);
@@ -977,7 +979,7 @@ class Terminal {
     }
 
     lookupNegativeDigit(digit) {
-        var negDigit = '}'; // default to '0'
+        let negDigit = '}'; // default to '0'
         switch (digit) {
             case '1': negDigit = 'J'; break;
             case '2': negDigit = 'K'; break;
@@ -1117,7 +1119,7 @@ class Terminal {
     }
 
     processNewLine() {
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         const initialPos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
         this.cursor.col = 0;
@@ -1224,7 +1226,7 @@ class Terminal {
 
         let fromPos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
         let pos = fromPos;
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         if (nonbreaking && nonbreaking === 'nb') {
             let done = false;
@@ -2224,8 +2226,6 @@ class Terminal {
         }
 
         this.writeTextAtCursor(character);
-        //if (dbcsType !== 'n' && DBCS.isChinese(character))
-        //    this.checkTruncateField(sa.field);
 
         let atDbcsEnd;
         if (autoEnter && this.isLastFieldPos(pos)) {
@@ -2249,7 +2249,7 @@ class Terminal {
             else if (this.autoAdvance && (!this.isCursorInInputPos() || (dbcsType !== 'n' && (atDbcsEnd = this.atDbcsFieldFullPos(sa.field))))) {
                 if (atDbcsEnd) {
                     const tmpPos = coordToPos(sa.field.row, sa.field.col) + sa.field.len;
-                    const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+                    const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
                     this.cursor.setPosition(map.rowFromPos(tmpPos), map.colFromPos(tmpPos));
                 }
                 this.moveToNextInputArea(this.cursor.row, this.cursor.col);
@@ -2421,13 +2421,15 @@ class Terminal {
         const pos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
 
         this.writeText(this.cursor.row + 1, this.cursor.col + 1, str);
-        new TerminalRender(
+        const renderer = new TerminalRender(
             this.termLayout,
             this.settingsStore.state.colors,
             TerminalDOM.getGlobalVarValue('--term-font-family'),
             this.regScr,
             this.dataSet,
-            this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + 1);
+            this.AsnaTerm5250);
+        renderer.renderInputCanvasSections(this.AsnaTerm5250, pos, pos + 1);
+        this.regScr.hasDByte = renderer.hasChinese;    
     }
 
     writeText(row, col, text) {
@@ -2457,32 +2459,6 @@ class Terminal {
 
         return index;
     }
-
-    //checkTruncateField(fld) {
-    //    const value = this.dataSet.getFieldValue(fld);
-    //    const byM = this.DBCS.calcByteLen(value);
-    //    var mod = false;
-
-    //    while (byM.bytes > fld.len && value.length > 0) {
-    //        mod = true;
-    //        value = value.substring(0, value.length - 1);
-    //        byM = this.DBCS.calcByteLen(value);
-    //    }
-
-    //    if (mod) {
-    //        // console.log('Need to truncate! old:' + temp + ' new:' + value);
-
-    //        this.dataSet.setFieldValue(fld, value);
-    //        const pos = this.regScr.coordToPos(fld.row, fld.col);
-    //        new TerminalRender(
-    //            this.termLayout,
-    //            this.settingsStore.state.colors,
-    //            TerminalDOM.getGlobalVarValue('--term-font-family'),
-    //            this.regScr,
-    //            this.dataSet,
-    //            this.AsnaTerm5250).renderInputCanvasSections(this.AsnaTerm5250, pos, pos + fld.len);
-    //    }
-    //}
 
     isLastFieldPos(pos) {
         const fieldEndPos = this.regScr.peekOnePastEndOfFieldPos(pos);
@@ -2518,7 +2494,7 @@ class Terminal {
 
     moveToNextInputArea(row, col) {
         const pos = this.regScr.coordToPos(row, col);
-        var newPos = this.regScr.scanAttrMap(pos, 'nextNonOutput');
+        const newPos = this.regScr.scanAttrMap(pos, 'nextNonOutput');
 
         if (newPos === pos) {
             return false;
@@ -2558,7 +2534,7 @@ class Terminal {
     }
 
     moveToPos(pos, dirtyInputFld) {
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
         this.updateCursor(dirtyInputFld);
@@ -2964,7 +2940,7 @@ class Terminal {
     }
 
     addNewLineRowChanged(pos, rowBefore) {
-        const map = new BufferMapping(this.termLayout._5250.cols, false /* PENDING: review */);
+        const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         if (map.rowFromPos(pos) > rowBefore) {
             return '\r\n';
@@ -3161,9 +3137,9 @@ class DataSet {
         const byteVal = ks.split(',');
         if (byteVal.length !== 3) { return; }
 
-        var keyFlags = (parseInt(byteVal[0], 10) << 16) + (parseInt(byteVal[1], 10) << 8) + parseInt(byteVal[2], 10);
-        var bit = 1;
-        for (var i = 0; i < 24; i++) {
+        const keyFlags = (parseInt(byteVal[0], 10) << 16) + (parseInt(byteVal[1], 10) << 8) + parseInt(byteVal[2], 10);
+        let bit = 1;
+        for (let i = 0; i < 24; i++) {
             this.attnKeyMap[i] = (keyFlags & bit) !== 0;
             bit = bit << 1;
         }
@@ -3192,7 +3168,7 @@ class DataSet {
     }
 
     parseDbcsType(fcwl, values, offset) {
-        var dbcsType = 'n';
+        let dbcsType = 'n';
 
         if (isNaN(fcwl) || fcwl <= 0) {
             return dbcsType;

@@ -21,24 +21,22 @@ const DBCS_TYPES = {
 
 const IDEOGRAPHIC_SPACE = '\u3000';
 
-
 class DBCS {
     static formatFieldValue(fldVal, dbcsType) {
-        if (dbcsType === 'G') {
-            return ''; // This is Unicode, no need to fix
-        }
-        if (dbcsType === 'O' || Validate.isNulls(fldVal)) {
+        if (dbcsType === 'G'|| dbcsType === 'O' || Validate.isNulls(fldVal)) {
             return fldVal;
         }
         let allDBCS = true;
+        let result = fldVal;
         if (dbcsType === 'E') {
             if (!DBCS.isChinese(fldVal[0])) { // content is not DBCS
                 allDBCS = false;
             }
         }
         if (allDBCS) {
-            const maxLen = (fldVal.length - 2) / 2;
-            for (i = 0; i < maxLen; i++) {
+            const maxLen = fldVal.length; //  (fldVal.length - 2) / 2;
+            result = '';
+            for (let i = 0; i < maxLen; i++) {
                 result += fldVal[i] === '\0' ? IDEOGRAPHIC_SPACE : fldVal[i];
             }
         }

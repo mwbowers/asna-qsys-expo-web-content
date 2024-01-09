@@ -60,7 +60,7 @@ class Validate {
 
     static isNulls(s) {
         const l = s.length;
-        for (var i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             if (s[i] !== '\0')
                 return false;
         }
