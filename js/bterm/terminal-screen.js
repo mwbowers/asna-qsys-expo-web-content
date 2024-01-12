@@ -316,86 +316,86 @@ class Screen {
         return -1;
     }
 
-    hotspotScan() {
-        let result = [];
+    //hotspotScan() {
+    //    let result = [];
 
-        for (let pos = 0; pos < this.buffer.length; pos++) {
-            const c = this.buffer[pos];
-            if ((c === ' ' || c.charCodeAt(0) === 0) &&
-                pos + 6 < this.buffer.length &&
-                this.buffer[pos + 1] === 'F' &&
-                (this.buffer[pos + 3] === '=' || this.buffer[pos + 4] === '=')) {
-                let sF = '';
-                let label = '';
-                let matchLen = 1; // 'F'
-                let digits=0;
+    //    for (let pos = 0; pos < this.buffer.length; pos++) {
+    //        const c = this.buffer[pos];
+    //        if ((c === ' ' || c.charCodeAt(0) === 0) &&
+    //            pos + 6 < this.buffer.length &&
+    //            this.buffer[pos + 1] === 'F' &&
+    //            (this.buffer[pos + 3] === '=' || this.buffer[pos + 4] === '=')) {
+    //            let sF = '';
+    //            let label = '';
+    //            let matchLen = 1; // 'F'
+    //            let digits=0;
 
-                if (this.buffer[pos + 3] === '=') {
-                    digits = 1;
-                } else if (this.buffer[pos + 4] === '=') {
-                    digits = 2;
-                }
+    //            if (this.buffer[pos + 3] === '=') {
+    //                digits = 1;
+    //            } else if (this.buffer[pos + 4] === '=') {
+    //                digits = 2;
+    //            }
 
-                let valid = true;
+    //            let valid = true;
 
-                // Get the digits before the equal sign.
-                for (let k = pos + 2; k < pos + 2 + digits; k++) {
-                    const c = this.buffer[k];
+    //            // Get the digits before the equal sign.
+    //            for (let k = pos + 2; k < pos + 2 + digits; k++) {
+    //                const c = this.buffer[k];
 
-                    if (! Validate.digitsOnly(c)) {
-                        valid = false;
-                        break;
-                    }
-                    sF += c;
-                    matchLen += 1;
-                }
+    //                if (! Validate.digitsOnly(c)) {
+    //                    valid = false;
+    //                    break;
+    //                }
+    //                sF += c;
+    //                matchLen += 1;
+    //            }
 
-                if (!valid) {
-                    continue;
-                }
+    //            if (!valid) {
+    //                continue;
+    //            }
 
-                const f = parseInt(sF, 10);
+    //            const f = parseInt(sF, 10);
 
-                if (f < 1 || f > 24) {
-                    continue;
-                }
+    //            if (f < 1 || f > 24) {
+    //                continue;
+    //            }
 
-                valid = false;
+    //            valid = false;
 
-                // Get the label after the equal sign. The last position must be blank.
-                for (let k = pos + 2 + digits; k < this.buffer.length; k++) {
-                    const c = this.buffer[k];
+    //            // Get the label after the equal sign. The last position must be blank.
+    //            for (let k = pos + 2 + digits; k < this.buffer.length; k++) {
+    //                const c = this.buffer[k];
 
-                    if (c === ' ' || c.charCodeAt(0) === 0) {
-                        valid = true;
-                        break;
-                    }
+    //                if (c === ' ' || c.charCodeAt(0) === 0) {
+    //                    valid = true;
+    //                    break;
+    //                }
 
-                    label += c;
-                    matchLen += 1;
-                }
+    //                label += c;
+    //                matchLen += 1;
+    //            }
 
-                if (label.length === 0) {
-                    continue;
-                }
+    //            if (label.length === 0) {
+    //                continue;
+    //            }
 
-                const cw = parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'));
-                const ch = parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'));
+    //            const cw = parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width'));
+    //            const ch = parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'));
 
-                const l = this.mapping.colFromPos(pos) * cw;
-                const r = this.mapping.colFromPos(pos + 2 + digits) * cw;
-                const t = this.mapping.rowFromPos(pos) * ch;
-                const w = matchLen * cw;
-                const h = ch;
+    //            const l = this.mapping.colFromPos(pos) * cw;
+    //            const r = this.mapping.colFromPos(pos + 2 + digits) * cw;
+    //            const t = this.mapping.rowFromPos(pos) * ch;
+    //            const w = matchLen * cw;
+    //            const h = ch;
 
-                result.push({ 'box': { 'l': l, 't': t, 'r': r, 'w': w, 'h': h }, 'label': label, 'action': 'F' + f });
+    //            result.push({ 'box': { 'l': l, 't': t, 'r': r, 'w': w, 'h': h }, 'label': label, 'action': 'F' + f });
 
-                pos += matchLen - 1; // The loop will increment one more.
-            }
-        }
+    //            pos += matchLen - 1; // The loop will increment one more.
+    //        }
+    //    }
 
-        return result;
-    }
+    //    return result;
+    //}
 
     getInputAreaAt(pos) {
         let initialPos = pos;

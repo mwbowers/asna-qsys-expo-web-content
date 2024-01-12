@@ -35,6 +35,13 @@ body {
     letter-spacing: var(--term-dbyte-letter-spacing);
 }
 
+.bterm-hotkey {
+    color: black !important;
+    background-color: whitesmoke !important;
+    cursor: pointer;
+    border-radius: 15%;
+}
+
 .bterm-cursor {
     position: absolute;
     outline-style: none;

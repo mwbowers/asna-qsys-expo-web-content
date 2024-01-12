@@ -13,6 +13,7 @@ import { CHAR_MEASURE } from './terminal-dom.js';
 import { StringExt } from '../string.js';
 import { DBCS } from './terminal-dbcs.js';
 import { TerminalDOM } from './terminal-dom.js';
+import { FKeyHotspot } from './terminal-fkey-hotspot.js';
 
 const DBYTE_LETTER_SPACING_TRY_INCREMENT = 0.1;
 
@@ -53,14 +54,14 @@ class TerminalRender {
 
             if (newState === State.NO_SECTION) {
                 if (n > 0) {
-                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
+                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol, true);
                 }
                 n = 0;
                 state = newState;
             }
             else if (newState === State.SWITCH_ATTR) {
                 if (n > 0) {
-                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
+                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol, true);
                 }
                 n = 0;
                 state = State.COUNT_SAME_ATTR;
@@ -71,7 +72,7 @@ class TerminalRender {
             }
             else if (newState === State.SWITCH_CHARSET) {
                 if (n > 0) {
-                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
+                    this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol, true);
                 }
                 n = 1;
                 state = State.COUNT_SAME_CHARSET;
@@ -84,7 +85,7 @@ class TerminalRender {
         }
 
         if (n > 0) {
-            this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol);
+            this.createCanvasSectGroup(fragment, pos - n, pos - 1, elRowCol, true);
         }
 
         this.completeEmptyFieldCanvasSections(fragment, elRowCol);
@@ -102,19 +103,19 @@ class TerminalRender {
         const charSetChanged = !TerminalRender.isEqualCharSet(ch, newCh);
 
         if (currentState === State.COUNT_SAME_ATTR && attrChanged) {
-            if (newCh === '\0' && this.isNormalAttr(newAttr)) {
+            if (newCh === '\0' && this.isNormalColorAndAttr(newAttr)) {
                 return State.NO_SECTION;
             }
             return State.SWITCH_ATTR;
         }
         else if ((currentState === State.COUNT_SAME_CHARSET || currentState === State.COUNT_SAME_ATTR) && charSetChanged) {
-            if (newCh === '\0' && this.isNormalAttr(newAttr)) {
+            if (newCh === '\0' && this.isNormalColorAndAttr(newAttr)) {
                 return State.NO_SECTION;
             }
             return State.SWITCH_CHARSET;
         }
 
-        if (chChanged && newCh === '\0' && this.isNormalAttr(newAttr)) {
+        if (chChanged && newCh === '\0' && this.isNormalColorAndAttr(newAttr)) {
             return State.NO_SECTION;
         }
         else if (chChanged && !attrChanged && !charSetChanged) {
@@ -122,7 +123,7 @@ class TerminalRender {
         }
         else if (!chChanged && attrChanged) {
             if (currentState === State.COUNT_SAME_ATTR) {
-                if (this.isNormalAttr(newAttr)) {
+                if (this.isNormalColorAndAttr(newAttr)) {
                     return State.NO_SECTION;
                 }
                 return State.SWITCH_ATTR;
@@ -140,12 +141,10 @@ class TerminalRender {
         return currentState;
     }
 
-    createCanvasSection(frag, regScr, fromPos, toPos, row, col, bkColor, color, reverse, underscore) {
+    createCanvasSection(frag, regScr, fromPos, toPos, row, col, bkColor, attr, maybeHotKey) {
         const len = toPos - fromPos + 1;
         let cols = len;
         let text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
-        const rowStr = `${row}`;
-        const colStr = `${col}`;
 
         text = TerminalRender.normalizeBlanks(text);
         const isChinese = DBCS.hasChinese(text);
@@ -154,24 +153,80 @@ class TerminalRender {
             cols = DBCS.calcDisplayLength(text)
         }
 
-        const section = document.createElement('pre');
+        let className = isChinese ? 'bterm-render-section-dbyte' : 'bterm-render-section';
 
-        section.className = ! isChinese ? 'bterm-render-section' : 'bterm-render-section-dbyte';
-        section.id = `r${StringExt.padLeft(rowStr, 2, '0')}c${StringExt.padLeft(colStr, 3, '0') }`;
+        let fkeyParts = [];
+        let adjLen = len;
+        if (maybeHotKey && FKeyHotspot.identify(text,0).fNum) {
+            className += ' bterm-hotkey';
+
+            fkeyParts = FKeyHotspot.splitFkeyParts(text);
+            if (fkeyParts.length > 0) {
+                text = fkeyParts[0].fkey;
+                adjLen = text.length;
+            }
+        }
+
+        this.createPreElement(frag, row, col, className, text, adjLen, bkColor, attr );
+
+        if (fkeyParts.length > 0) {
+            this.createPreElement(
+                frag, row,
+                col + fkeyParts[0].fkey.length,
+                'bterm-render-section',
+                fkeyParts[0].label,
+                fkeyParts[0].label.length,
+                bkColor,
+                attr
+            );
+
+            const l = fkeyParts.length;
+            for (let i = 1; i < l; i++) {
+                this.createPreElement(
+                    frag,
+                    row,
+                    col + fkeyParts[i].pos,
+                    'bterm-render-section + bterm-hotkey',
+                    fkeyParts[i].fkey,
+                    fkeyParts[i].fkey.length,
+                    bkColor,
+                    attr
+                );
+                this.createPreElement(
+                    frag,
+                    row,
+                    col + fkeyParts[i].pos + fkeyParts[i].fkey.length /* + 1*/, // len(Fxx=)
+                    'bterm-render-section',
+                    fkeyParts[i].label,
+                    fkeyParts[i].label.length,
+                    bkColor,
+                    attr
+                );
+
+            }
+        }
+    }
+
+    createPreElement(frag, row, col, className, text, len, bkColor, attr) {
+        const rowStr = `${row}`;
+        const colStr = `${col}`;
+
+        const section = document.createElement('pre');
+        section.className = className;
+        section.id = `r${StringExt.padLeft(rowStr, 2, '0')}c${StringExt.padLeft(colStr, 3, '0')}`;
         section.style.gridColumnStart = col + 1;
-        section.style.gridColumnEnd = col + 1 + cols;
+        section.style.gridColumnEnd = col + 1 + len;
         section.style.gridRowStart = row + 1;
         section.style.gridRowEnd = row + 1;
         section.setAttribute('data-asna-len', len);
 
         section.style.borderBottomWidth = CHAR_MEASURE.UNDERLINE_HEIGHT + 'px'; // ???
 
-        this.setCanvasSectionText(section, text, bkColor, color, reverse, underscore, section.id === 'r19c006'); // Instrument for automated testing
-
+        this.setCanvasSectionTextAnd5250Attr(section, text, bkColor, attr.color, attr.reverse, attr.underscore);
         frag.appendChild(section);
     }
 
-    createCanvasSectGroup(frag, fromPos, toPos, elRowCol) {
+    createCanvasSectGroup(frag, fromPos, toPos, rowColJsonArray, maybeHotKey) {
         let len = toPos - fromPos + 1;
         const attr = this.regScr.attrMap[fromPos].screenAttr;
 
@@ -193,8 +248,8 @@ class TerminalRender {
         }
 
         if (col + len <= this.termLayout._5250.cols) {
-            elRowCol.push({ row: row, col: col });
-            this.createCanvasSection(frag, this.regScr, fromPos, toPos, row, col, 'bkgd', attr.color, attr.reverse, attr.underscore); // No blink nor colSep
+            rowColJsonArray.push({ row: row, col: col });
+            this.createCanvasSection(frag, this.regScr, fromPos, toPos, row, col, 'bkgd', attr, maybeHotKey ); // No blink nor colSep
             return;
         }
         else {
@@ -204,8 +259,8 @@ class TerminalRender {
 
             while (len > 0) {
                 toPos = fromPos + len - 1;
-                elRowCol.push({ row: row, col: col });
-                this.createCanvasSection(frag, this.regScr, fromPos, toPos, row, col, 'bkgd', attr.color, attr.reverse, attr.underscore); // No blink nor colSep            
+                rowColJsonArray.push({ row: row, col: col });
+                this.createCanvasSection(frag, this.regScr, fromPos, toPos, row, col, 'bkgd', attr, maybeHotKey); // No blink nor colSep            
 
                 fromPos = fromPos + len;
                 col = 0;
@@ -217,7 +272,7 @@ class TerminalRender {
         }
     }
 
-    setCanvasSectionText(section, text, bkColor, color, reverse, underscore, instTesting) {
+    setCanvasSectionTextAnd5250Attr(section, text, bkColor, color, reverse, underscore, instTesting) {
         if (!reverse) {
             if (bkColor !== 'bkgd') {
                 section.style.backgroundColor = this.getWebColor(bkColor);
@@ -225,7 +280,6 @@ class TerminalRender {
             section.style.color = this.getWebColor(color);
         }
         else {
-
             if (color !== 'bkgd') {
                 section.style.backgroundColor = this.getWebColor(color);
             }
@@ -240,8 +294,6 @@ class TerminalRender {
             section.style.borderBottomWidth = '0px';
         }
         section.textContent = text;
-
-        // TerminalRender.setDivText(section, text, /*this.preFontFamily,*/ instTesting);
     }
 
     completeEmptyFieldCanvasSections (frag, elRowCol) {
@@ -274,7 +326,7 @@ class TerminalRender {
             const pos = map.coordToPos(rowCol.row, rowCol.col);
             const fld = TerminalRender.lookupFieldWithPosition(pos, this.termLayout, this.dataSet, this.hasChinese);
             if (!fld) { continue; /* should never happen */ }
-            this.createCanvasSectGroup(frag, pos, pos + fld.len - 1, []);
+            this.createCanvasSectGroup(frag, pos, pos + fld.len - 1, [], false);
         }
     }
 
@@ -383,7 +435,7 @@ class TerminalRender {
             }
 
             const text = Screen.copyPositionsFromBuffer(this.regScr, sectStartPos, sectStartPos + virtField.len);
-            this.setCanvasSectionText(dirtyInputSections[index], text, 'bkgd', color, reverse, underscore, virtField.row === 19 && virtField.col === 6); // Instrument for automated testing
+            this.setCanvasSectionTextAnd5250Attr(dirtyInputSections[index], text, 'bkgd', color, reverse, underscore, virtField.row === 19 && virtField.col === 6); // Instrument for automated testing
         }
     }
 
@@ -441,8 +493,12 @@ class TerminalRender {
         return result;
     }
 
+    isNormalColorAndAttr(attr) {
+        return attr && attr.color === 'g' && this.isNormalAttr(attr);
+    }
+
     isNormalAttr(attr) {
-        return attr && attr.color === 'g' && !attr.reverse && !attr.underscore && !attr.blink && !attr.nonDisp && !attr.colSep;
+        return attr && !attr.reverse && !attr.underscore && !attr.blink && !attr.nonDisp && !attr.colSep;
     }
 
     getWebColor(c) {

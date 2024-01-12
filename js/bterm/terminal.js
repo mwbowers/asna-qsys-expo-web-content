@@ -283,10 +283,10 @@ class Terminal {
         if (lastState.show.functionKeyHotspots !== this.settingsStore.state.show.functionKeyHotspots) {
             Preferences.serializeShow(this.settingsStore.state.show);
             if (this.settingsStore.state.show.functionKeyHotspots) {
-                FKeyHotspot.show();
+                // FKeyHotspot.show(); 
             }
             else {
-                FKeyHotspot.hide();
+                // FKeyHotspot.hide();
             }
         }
 
@@ -387,8 +387,8 @@ class Terminal {
         ASNA.LocalStorage.ReadIbmKpadUserBtns();
 */
         IbmKeypad.init(this.AsnaTermFacade, this.termLayout, this.executeVirtualKey, this.actionMap, this.settingsStore);
-
-        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
+        FKeyHotspot.enableClickEvent(this.AsnaTerm5250, this.executeVirtualKey);
+        // FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
 
         Settings.init(ID.STATUSBAR, SETTINGS_OPENING_HEIGHT, this.settingsStore);
         IbmKeypad.initialLocation(this.termLayout, this.settingsStore.state.locations.ibmKeypad);
@@ -1727,9 +1727,9 @@ class Terminal {
                 this.termCursor.focus();
             }
         }
-        else {
-            this.setFocusAtCursor();
-        }
+        //else {
+        //    this.setFocusAtCursor();
+        //}
     }
 
     processFocusSet() {
@@ -1739,18 +1739,18 @@ class Terminal {
             if (this.termCursor)
                 this.termCursor.focus();
         }
-        else if ((!input || input && input.className !== ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) && true /*ASNA.SettingsDialog.Preference().phyKbd*/) {
-            this.setFocusAtCursor();
-        }
-        else {
-            if (input && input.className === ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) {
-                const currFld = TerminalRender.lookupFieldWithPosition(this.regScr.coordToPos(cursorPos.row, cursorPos.col), this.termLayout, this.dataSet);
+        //else if ((!input || input && input.className !== ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) && true /*ASNA.SettingsDialog.Preference().phyKbd*/) {
+        //    this.setFocusAtCursor();
+        //}
+        //else {
+        //    if (input && input.className === ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) {
+        //        const currFld = TerminalRender.lookupFieldWithPosition(this.regScr.coordToPos(cursorPos.row, cursorPos.col), this.termLayout, this.dataSet);
 
-                if (!currFld || input.fld && currFld !== input.fld) {
-                    this.moveCursorTouchableInput(input, lastColTouched >= 0 ? lastColTouched : input.fld.col);
-                }
-            }
-        }
+        //        if (!currFld || input.fld && currFld !== input.fld) {
+        //            this.moveCursorTouchableInput(input, lastColTouched >= 0 ? lastColTouched : input.fld.col);
+        //        }
+        //    }
+        //}
         this.focus.hasFocus = true;
         this.cursor.show();
     }
@@ -1987,21 +1987,21 @@ class Terminal {
         };
     }
 
-    setFocusAtCursor() {
-        let input = document.activeElement;
+    //setFocusAtCursor() {
+    //    let input = document.activeElement;
 
-        if (input && input && input.className === ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) {
-            return; // Already there.
-        }
+    //    if (input && input && input.className === ASNA.TEMCSS_NAME.TOUCHABLE_INPUT) {
+    //        return; // Already there.
+    //    }
 
-        const currFld = TerminalRender.lookupFieldWithPosition(this.regScr.coordToPos(this.cursor.row, this.cursor.col), this.termLayout, this.dataSet);
-        if (currFld) {
-            input = null; // $TO-DO: ASNA.TouchableInput.Find(currFld);
-            if (input) {
-                input.focus();
-            }
-        }
-    }
+    //    const currFld = TerminalRender.lookupFieldWithPosition(this.regScr.coordToPos(this.cursor.row, this.cursor.col), this.termLayout, this.dataSet);
+    //    if (currFld) {
+    //        input = null; // $TO-DO: ASNA.TouchableInput.Find(currFld);
+    //        if (input) {
+    //            input.focus();
+    //        }
+    //    }
+    //}
 
     moveCursorTouchableInput(input, newCol) {
         if (typeof input.fld === 'undefined') {
@@ -2621,7 +2621,7 @@ class Terminal {
         this.toolbar.removeToolbars();
 
         this.hideMsgIndicator();
-        FKeyHotspot.remove();
+        // FKeyHotspot.remove(); -- Note: click events disapear when "canvas" is cleared above.
         // ASNA.IbmKpad.Remove();
 
         this.adjustCanvasSize();
@@ -2630,14 +2630,17 @@ class Terminal {
         this.toolbar = new TerminalToolbar();
         this.toolbar.create(this.termLayout, TerminalDOM.getGlobalVarValue('--term-font-family'), this.settingsStore.state.colors);
 
-        new TerminalRender(this.termLayout, this.settingsStore.state.colors, TerminalDOM.getGlobalVarValue('--term-font-family'), this.regScr, this.dataSet, this.AsnaTerm5250).render();
+        const renderer = new TerminalRender(this.termLayout, this.settingsStore.state.colors, TerminalDOM.getGlobalVarValue('--term-font-family'), this.regScr, this.dataSet, this.AsnaTerm5250);
+        renderer.render();
+        this.regScr.hasDByte = renderer.hasChinese;
 
         this.updateCursor();
         this.renderStatusBar();
 
         this.adjust_5250Div();
         Settings.init(ID.STATUSBAR, SETTINGS_OPENING_HEIGHT, this.settingsStore );
-        FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
+        // FKeyHotspot.init(this.AsnaTerm5250, this.regScr.hotspotScan(), this.executeVirtualKey, this.settingsStore.state.show.functionKeyHotspots);
+        FKeyHotspot.enableClickEvent(this.AsnaTerm5250, this.executeVirtualKey);
         if (this.enterBigButton) {
             this.enterBigButton.calcLocation(this.termLayout);
         }
