@@ -156,7 +156,7 @@ class TerminalRender {
         let className = isChinese ? 'bterm-render-section-dbyte' : 'bterm-render-section';
 
         let fkeyParts = [];
-        let adjLen = len;
+        let adjLen = Math.max(len, cols);
         if (maybeHotKey && FKeyHotspot.identify(text,0).fNum) {
             className += ' bterm-hotkey';
 
