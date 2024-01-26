@@ -719,7 +719,7 @@ class Terminal {
 
         Clipboard.setText( text );
         if (!noResetSelection) {
-            this.textSelect.reset();
+            this.textSelect.reset('copy');
         }
         this.updateCursor();
 
@@ -753,7 +753,7 @@ class Terminal {
             pos = pos + 1;
         }
         this.renderInputArea(fromPos, toPos);
-        this.textSelect.reset();
+        this.textSelect.reset('cut');
         this.updateCursor();
     }
 
@@ -1484,7 +1484,7 @@ class Terminal {
             this.preHelpErrorCode = null;
             this.renderStatusBar();
         }
-        this.textSelect.reset();
+        this.textSelect.reset('reset');
     }
 
     removeErrorLine() {    // put back the saved buffer and saved attrMap
@@ -2616,7 +2616,7 @@ class Terminal {
     }
 
     rebuildPage() {
-        this.textSelect.reset();
+        this.textSelect.reset('rebuild');
         TerminalRender.clearCanvas(this.AsnaTerm5250);
         this.toolbar.removeToolbars();
 
@@ -2751,7 +2751,7 @@ class Terminal {
             return;
         }
 
-        this.textSelect.reset();
+        this.textSelect.reset('pointer start');
 
         const scroll = this.getWindowScroll();
         let pt = { x: event.clientX - scroll.x, y: event.clientY - scroll.y };
@@ -2765,7 +2765,7 @@ class Terminal {
             return;
         }
 
-        if (target && !TerminalRender.is5250TextElement(this.AsnaTerm5250,target)) {
+        if (target && !TerminalRender.is5250TextElement(this.AsnaTerm5250, target) && target != this.AsnaTerm5250) {
             this.activateUI_Element(target);
             return;
         }
@@ -2784,37 +2784,40 @@ class Terminal {
     }
 
     handlePointerMoveEvent(event) {
+        if (this.textSelect && this.textSelect.mode === TEXT_SELECT_MODES.COMPLETE) {
+            return;
+        }
+
         if (!this.devicePointers || isNaN(this.termLayout.w) || !this.textSelect.anchor) {
             if (!this.devicePointers) { TextSelect.log(`handlePointerMoveEvent: !this.devicePointers`); }
             if (isNaN(this.termLayout.w)) { TextSelect.log(`handlePointerMoveEvent: isNaN(this.termLayout.w)`); }
             if (isNaN(!this.textSelect.anchor)) { TextSelect.log(`handlePointerMoveEvent: !this.textSelect.anchor`); }
             return;
         }
+
         const pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
 
-        if (this.textSelect.mode !== TEXT_SELECT_MODES.COMPLETE) {
-            const dx = Math.abs(this.textSelect.anchor.x - pt.x);
-            const dy = Math.abs(this.textSelect.anchor.y - pt.y);
+        const dx = Math.abs(this.textSelect.anchor.x - pt.x);
+        const dy = Math.abs(this.textSelect.anchor.y - pt.y);
 
-            TextSelect.log(`handlePointerMoveEvent (not complete): ${this.textSelect.currentModeString()}`);
+        TextSelect.log(`handlePointerMoveEvent (not complete): ${this.textSelect.currentModeString()}`);
 
-            let potentialStart = false;
-            let cursorDim = TextSelect.getCursorDim(this.termCursor);
-            if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION) {
-                potentialStart = cursorDim && TextSelect.hasPointerMovedToStartSelection(cursorDim, dx, dy);
-                TextSelect.log(potentialStart ? `hasPointerMovedToStartSelection` : `NOT hasPointerMovedToStartSelection!!!`);
-            }
+        let potentialStart = false;
+        let cursorDim = TextSelect.getCursorDim(this.termCursor);
+        if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION) {
+            potentialStart = cursorDim && TextSelect.hasPointerMovedToStartSelection(cursorDim, dx, dy);
+            TextSelect.log(potentialStart ? `hasPointerMovedToStartSelection` : `NOT hasPointerMovedToStartSelection!!!`);
+        }
 
-            if (cursorDim && (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && potentialStart || this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS)) {
-                this.textSelect.setInProgress(); 
+        if (cursorDim && (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && potentialStart || this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS)) {
+            this.textSelect.setInProgress(); 
 
-                const sel = this.textSelect.calcRect(pt, cursorDim);
-                const rect = this.getRect(sel.row, sel.col, sel.rows, sel.cols);
+            const sel = this.textSelect.calcRect(pt, cursorDim);
+            const rect = this.getRect(sel.row, sel.col, sel.rows, sel.cols);
 
-                this.textSelect.positionElement(rect, this.settingsStore.state.colors.sel);
-                this.cursor.hide();
-                this.textSelect.show();
-            }
+            this.textSelect.positionElement(rect, this.settingsStore.state.colors.sel);
+            this.cursor.hide();
+            this.textSelect.show();
         }
     }
 
@@ -2906,13 +2909,6 @@ class Terminal {
                 ASNA.Pointer.CancelMoveEvents(window);
                 ASNA.Pointer.RemoveListenToEvents(window);
                 ASNA.IbmKpad.SetCapture(ASNA.Common.SkipSvgChildren(target), id, x, y, function () { ASNA.Pointer.ListenToEvents(window, _pointerStart, _pointerMove, _pointerEnd, _pointerCancel); });
-                __pointer = '';
-                return;
-            }
-            else if (ASNA.FKeyHotSpot.Belongs(target)) {
-                ASNA.Pointer.CancelMoveEvents(window);
-                ASNA.Pointer.RemoveListenToEvents(window);
-                ASNA.FKeyHotSpot.SetCapture(target, id, x, y, function () { ASNA.Pointer.ListenToEvents(window, _pointerStart, _pointerMove, _pointerEnd, _pointerCancel); });
                 __pointer = '';
                 return;
             }

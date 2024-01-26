@@ -115,6 +115,7 @@ body {
     /* Firefox, Chrome */
     filter: alpha(opacity=50);
     /* IE */
+    pointer-events: none;
 }
 
 #AsnaTermErrMsg {

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export { TerminalRender };
+export { TerminalRender, DATA_ATTR };
 
 import { Screen, ScreenAttr, Field  } from './terminal-screen.js';
 import { BufferMapping } from './buffer-mapping.js'
@@ -23,6 +23,10 @@ const State = {
     COUNT_SAME_ATTR: '=a',
     SWITCH_CHARSET: '+d',
     COUNT_SAME_CHARSET: '=d'
+}
+
+const DATA_ATTR = {
+    REGEN: 'data-asna-regen'
 }
 
 class TerminalRender {
@@ -142,12 +146,12 @@ class TerminalRender {
     }
 
     createCanvasSection(frag, regScr, fromPos, toPos, row, col, bkColor, attr, maybeHotKey) {
-        const len = toPos - fromPos + 1;
-        let cols = len;
+        let len = toPos - fromPos + 1;
+        let cols = len; // used to define grid-cols (may be adjusted for Chinese chars)
         let text = Screen.copyPositionsFromBuffer(regScr, fromPos, toPos);
 
         text = TerminalRender.normalizeBlanks(text);
-        const isChinese = DBCS.hasChinese(text);
+        let isChinese = DBCS.hasChinese(text);
 
         if (isChinese) {
             cols = DBCS.calcDisplayLength(text)
@@ -156,69 +160,72 @@ class TerminalRender {
         let className = isChinese ? 'bterm-render-section-dbyte' : 'bterm-render-section';
 
         let fkeyParts = [];
-        let adjLen = Math.max(len, cols);
         if (maybeHotKey && FKeyHotspot.identify(text,0).fNum) {
             className += ' bterm-hotkey';
 
             fkeyParts = FKeyHotspot.splitFkeyParts(text);
             if (fkeyParts.length > 0) {
-                text = fkeyParts[0].fkey;
-                adjLen = text.length;
+                text = fkeyParts[0].fkey; // Can't be Chinese
+                len = text.length
+                cols = text.length;
             }
         }
 
-        this.createPreElement(frag, row, col, className, text, adjLen, bkColor, attr );
+        this.createPreElement(frag, row, col, cols, fromPos, len, className, text, bkColor, attr );
 
         if (fkeyParts.length > 0) {
-            this.createPreElement(
-                frag, row,
-                col + fkeyParts[0].fkey.length,
-                'bterm-render-section',
-                fkeyParts[0].label,
-                fkeyParts[0].label.length,
-                bkColor,
-                attr
-            );
+            text = fkeyParts[0].label; // First FKey label
+            len = text.length;
+            cols = len;
+            text = TerminalRender.normalizeBlanks(text);
+            isChinese = DBCS.hasChinese(text);
+            if (isChinese) {
+                cols = DBCS.calcDisplayLength(text)
+            }
+
+            col     += fkeyParts[0].fkey.length;
+            fromPos += fkeyParts[0].fkey.length;
+            className = isChinese ? 'bterm-render-section-dbyte' : 'bterm-render-section';
+            this.createPreElement(frag, row, col, cols, fromPos, len, className, text, bkColor, attr );
+
+            col += len;
+            fromPos += len;
 
             const l = fkeyParts.length;
-            for (let i = 1; i < l; i++) {
-                this.createPreElement(
-                    frag,
-                    row,
-                    col + fkeyParts[i].pos,
-                    'bterm-render-section + bterm-hotkey',
-                    fkeyParts[i].fkey,
-                    fkeyParts[i].fkey.length,
-                    bkColor,
-                    attr
-                );
-                this.createPreElement(
-                    frag,
-                    row,
-                    col + fkeyParts[i].pos + fkeyParts[i].fkey.length /* + 1*/, // len(Fxx=)
-                    'bterm-render-section',
-                    fkeyParts[i].label,
-                    fkeyParts[i].label.length,
-                    bkColor,
-                    attr
-                );
+            for (let i = 1; i < l; i++) { // Rest of Fkey+Label in the same row.
+                text = fkeyParts[i].fkey; // Can't be Chinese
+                len = text.length;
+                cols = len;
 
+                this.createPreElement(frag, row, col, cols, fromPos, len, 'bterm-render-section bterm-hotkey', text, bkColor, attr);
+                col += len;
+                fromPos += len;
+
+                text = fkeyParts[i].label;
+                text = TerminalRender.normalizeBlanks(text);
+                len = text.length;
+                cols = len;
+                isChinese = DBCS.hasChinese(text);
+                if (isChinese) {
+                    cols = DBCS.calcDisplayLength(text)
+                }
+                className = isChinese ? 'bterm-render-section-dbyte' : 'bterm-render-section';
+
+                this.createPreElement( frag, row, col, cols, fromPos, len, className, text, bkColor, attr );
+                col += len;
+                fromPos += len;
             }
         }
     }
 
-    createPreElement(frag, row, col, className, text, len, bkColor, attr) {
-        const rowStr = `${row}`;
-        const colStr = `${col}`;
-
+    createPreElement(frag, row, col, cols, regenpos, len, className, text, bkColor, attr) {
         const section = document.createElement('pre');
         section.className = className;
-        section.id = `r${StringExt.padLeft(rowStr, 2, '0')}c${StringExt.padLeft(colStr, 3, '0')}`;
         section.style.gridColumnStart = col + 1;
-        section.style.gridColumnEnd = col + 1 + len;
+        section.style.gridColumnEnd = col + 1 + cols;
         section.style.gridRowStart = row + 1;
         section.style.gridRowEnd = row + 1;
-        section.setAttribute('data-asna-len', len);
+        section.setAttribute(`${DATA_ATTR.REGEN}`, `${regenpos},${len}`);
 
         section.style.borderBottomWidth = CHAR_MEASURE.UNDERLINE_HEIGHT + 'px'; // ???
 
@@ -331,7 +338,7 @@ class TerminalRender {
     }
 
     adjustDblByteLetterSpacing() {
-        const dbyteCollection = this.term5250ParentElement.querySelectorAll(`pre[class~=bterm-render-section-dbyte]`);
+        const dbyteCollection = this.term5250ParentElement.querySelectorAll('pre[class~=bterm-render-section-dbyte]');
         if (!dbyteCollection) { return; }
         let max = 0;
         let maxEl = null;
@@ -375,67 +382,43 @@ class TerminalRender {
     }
 
     renderInputCanvasSections(termSectionsParent, fromPos, toPos) {
-        let fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet, this.hasChinese);
-        const toField = TerminalRender.lookupFieldWithPosition(toPos, this.termLayout, this.dataSet, this.hasChinese);
-
-        while (!fromFld && fromPos < toPos) {
-            fromPos = fromPos + 1;
-            fromFld = TerminalRender.lookupFieldWithPosition(fromPos, this.termLayout, this.dataSet, this.hasChinese);
-        }
-
-        if (!fromFld) {
+        const sections = termSectionsParent.querySelectorAll(`pre[${DATA_ATTR.REGEN}]`);
+        if (!sections || !sections.length) {
             return;
         }
 
         let dirtyInputSections = [];
-
-        const fromRow = fromFld.row;
-        const numRows = (((fromFld.col + fromFld.len) / this.termLayout._5250.cols) >> 0) + 1;
-
-        if (toField !== fromFld) {
-            while (!toField && toField !== fromFld && toPos > fromPos) {
-                toPos = toPos - 1;
-                toField = lookupFieldWithPosition(toPos);
-            }
-            if (toField) {
-                numRows = (((toField.col + toField.len) / termLayout._5250.cols) >> 0) + 1;
-                numRows = (toField.row - fromFld.row) + numRows;
-            }
-        }
-
-        const toRow = fromRow + (numRows - 1);
-
-        // Collect input canvas sections whose rows are in the range of rows requested.
-        // Note: one 5250 field may be broken-down in more than one canvas sections (virtual fields).
-        let childNode;
-        for (let index = 0; (childNode=termSectionsParent.childNodes[index])!=null; index++) {
-            if (childNode.tagName === 'PRE' && childNode.getAttribute('data-asna-len')) {
-                const virtField = TerminalRender.parseCanvasSectionId(childNode);
-
-                if (virtField.row >= fromRow && virtField.row <= toRow && Screen.isRowColInInputPos(this.regScr, virtField.row, virtField.col)) {
-                    dirtyInputSections[dirtyInputSections.length] = childNode;
+        let i;
+        const l = sections.length;
+        for (i = 0; i < l; i++) {
+            const section = sections[i];
+            const regenData = TerminalRender.parseRegenDataAttr(section.getAttribute(DATA_ATTR.REGEN));
+            if (regenData.pos && regenData.len ) {
+                if (TerminalRender.isIntersect(fromPos, toPos, regenData.pos, regenData.pos + regenData.len )) {
+                    dirtyInputSections.push(section);
                 }
             }
         }
 
         // Refresh the text, by getting content from regeneration buffer.
         // Note: unfortunately, some of the attributes are part of the HTML text, such as underline.
-        for (let index = 0; index < dirtyInputSections.length; index++) {
-            const virtField = TerminalRender.parseCanvasSectionId(dirtyInputSections[index]);
+        const lDirty = dirtyInputSections.length;
+        for (i = 0; i < lDirty; i++) {
+            const section = dirtyInputSections[i];
+            const regenData = TerminalRender.parseRegenDataAttr(section.getAttribute(DATA_ATTR.REGEN));
+            if (!regenData.len) { continue; }
 
-            const sectStartPos = this.regScr.coordToPos(virtField.row, virtField.col);
-
-            const color = this.regScr.attrMap[sectStartPos].screenAttr.color;
-            const reverse = this.regScr.attrMap[sectStartPos].screenAttr.reverse;
-            const underscore = this.regScr.attrMap[sectStartPos].screenAttr.underscore;
-            const nonDisplay = this.regScr.attrMap[sectStartPos].screenAttr.nonDisp;
+            const color = this.regScr.attrMap[regenData.pos].screenAttr.color;
+            const reverse = this.regScr.attrMap[regenData.pos].screenAttr.reverse;
+            const underscore = this.regScr.attrMap[regenData.pos].screenAttr.underscore;
+            const nonDisplay = this.regScr.attrMap[regenData.pos].screenAttr.nonDisp;
 
             if (nonDisplay) { // This should not happen. We do not create 'non-display' canvas sections.
                 continue;
             }
 
-            const text = Screen.copyPositionsFromBuffer(this.regScr, sectStartPos, sectStartPos + virtField.len);
-            this.setCanvasSectionTextAnd5250Attr(dirtyInputSections[index], text, 'bkgd', color, reverse, underscore, virtField.row === 19 && virtField.col === 6); // Instrument for automated testing
+            const text = Screen.copyPositionsFromBuffer(this.regScr, regenData.pos, regenData.pos + regenData.len);
+            this.setCanvasSectionTextAnd5250Attr(section, text, 'bkgd', color, reverse, underscore);
         }
     }
 
@@ -493,6 +476,27 @@ class TerminalRender {
         return result;
     }
 
+    static isIntersect(fromPos, toPos, fromPos2, toPos2 ) {
+        for (let pos = fromPos; pos <= toPos; pos++) {
+            for (let pos2 = fromPos2; pos2 < toPos2; pos2++ ) {
+                if (pos === pos2) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    static parseRegenDataAttr(regenData) {
+        if (!regenData) { return {}; }
+        const parts = regenData.split(',');
+        if (parts.length === 2) {
+            return { pos: parseInt(parts[0], 10), len: parseInt(parts[1], 10) };
+        }
+        return {};
+    }
+
     isNormalColorAndAttr(attr) {
         return attr && attr.color === 'g' && this.isNormalAttr(attr);
     }
@@ -528,14 +532,6 @@ class TerminalRender {
         }
 
         return this.termColors.green; // i.e.  Non-display
-    }
-
-    static parseCanvasSectionId(node) {
-        return new Field(
-            parseInt(node.id.substring(1), 10),   // skip 'r'            
-            parseInt(node.id.substring(4), 10),   // skip 'rnnc'
-            parseInt(node.getAttribute('data-asna-len'), 10)
-        );
     }
 
     static setDivText(divEl, text, preFontFamily, instTesting) {
@@ -589,27 +585,22 @@ class TerminalRender {
         return text;
     }
 
-    static clearCanvas(term5250ParentElement) {
-        if (!term5250ParentElement) {
+    static clearCanvas(termSectionsParent) {
+        if (!termSectionsParent) {
             console.log('TerminalRender.clearCanvas error!');
             return;
         }
 
-        let regenBufferSections = [];
-
-        for (let index = 0; term5250ParentElement.childNodes[index]; index++) {
-            const childNode = term5250ParentElement.childNodes[index];
-            if (childNode.tagName === 'PRE' && childNode.getAttribute('data-asna-len')) {
-                regenBufferSections[regenBufferSections.length] = childNode;
-            }
+        const sections = termSectionsParent.querySelectorAll(`pre[${DATA_ATTR.REGEN}]`);
+        if (!sections || !sections.length) {
+            return;
         }
 
-        while (regenBufferSections.length > 0) {
-            term5250ParentElement.removeChild(regenBufferSections[regenBufferSections.length - 1]);
-            regenBufferSections.length = regenBufferSections.length - 1;
+        let i;
+        const l = sections.length;
+        for (i = 0; i < l; i++) {
+            termSectionsParent.removeChild(sections[i]);
         }
-
-        regenBufferSections = []; // Force garbage collector
     }
 
     static is5250TextElement(term5250ParentElement, candidate) {
@@ -631,6 +622,5 @@ class TerminalRender {
         }
         return { startPos: startRowPos, text: text };
     }
-
 }
 

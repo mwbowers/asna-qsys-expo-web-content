@@ -16,7 +16,7 @@ class BufferMapping {
         this.hasChinese = hasChinese;
     }
     coordToPos(row, col) {
-        return col + row * this._5250cols;
+        return col + row * this._5250cols; // !!!
     }
 
     rowFromPos(pos) {

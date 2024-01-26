@@ -7,6 +7,8 @@
 
 export { TextSelect, TEXT_SELECT_MODES, Point };
 
+import { TerminalRender, DATA_ATTR } from './terminal-render.js';
+
 const TEXT_SELECT_MODES = {
     PASSIVE: '',
     POTENTIAL_SELECTION: 'potential-selection',
@@ -15,6 +17,7 @@ const TEXT_SELECT_MODES = {
 };
 
 const _debug = false;
+const _debug2 = false;
 
 class TextSelect {
     constructor(selectionElement) {
@@ -24,15 +27,38 @@ class TextSelect {
 
     clientPt(termParentEl, devPointerEvent) {
         const clientRect = termParentEl.getBoundingClientRect();
-        return new Point(devPointerEvent.clientX - clientRect.left, devPointerEvent.clientY - clientRect.top);
+        const clientPoint = new Point(devPointerEvent.clientX - clientRect.left, devPointerEvent.clientY - clientRect.top);
+        if (_debug2) {
+            const target = devPointerEvent.target;
+            if (target) {
+                const dataRegen = TerminalRender.parseRegenDataAttr(target.getAttribute(DATA_ATTR.REGEN));
+                if (dataRegen.len) {
+                    const sectionRect = target.getBoundingClientRect();
+                    const pixPerChar = sectionRect.width / dataRegen.len;
+                    const pointedPosInSection = Math.trunc( (clientPoint.x - sectionRect.left) / pixPerChar );
+                    console.log(`${dataRegen.pos},${dataRegen.len} ${target.className} pixPerChar: ${pixPerChar} rel-pos: ${pointedPosInSection}`);
+                }
+                else {
+                    console.log(`No section: ${devPointerEvent.target.id}`);
+                }
+            }
+        }
+        return clientPoint;
     }
 
-    reset() {
+    reset(callerMsg) {
         this.mode = TEXT_SELECT_MODES.PASSIVE;
         this.anchor = null;
         this.selectedRect = null;
         this.hide();
-        if (_debug) { console.log('TextSelect.Reset .selectedRect = null'); }
+        if (_debug) {
+            if (callerMsg) {
+                console.log(`TextSelect.Reset .selectedRect = null -- ${callerMsg}`);
+            }
+            else {
+                console.log('TextSelect.Reset .selectedRect = null');
+            }
+        }
     }
 
     positionElement(rect, color) {
@@ -86,7 +112,7 @@ class TextSelect {
     }
 
     static hasPointerMovedToStartSelection(cursorDim, dx, dy) {
-        return dx > cursorDim.w || dy > cursorDim.y;
+        return dx > cursorDim.w || dy > cursorDim.h;
     }
 
     static normalizeCoordRect(cursorDim, pt, pt2) {
