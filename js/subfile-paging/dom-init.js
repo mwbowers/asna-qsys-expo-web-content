@@ -32,6 +32,13 @@ const EXPO_SUBFILE_CLASS = {
 const ICON_NAME_MORE = 'download';
 const ICON_NAME_NO_MORE = 'ban-circle';
 
+let debug = false;
+
+const LastSubfileClicked = {
+    x: 0,
+    y: 1
+}
+
 class SubfileController {
 
     static init(mainDiv, sflEndClickAsPushKeyHandling) {
@@ -163,7 +170,11 @@ class SubfileController {
             return likely;
         }
 
-        return null;
+        if (LastSubfileClicked.x > 0 && LastSubfileClicked.y > 0) {
+            likely = document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
+        }
+
+        return likely;
     }
 
     static getClosestSubfileCtrlName(el) {
@@ -224,10 +235,19 @@ class SubfileController {
 
             const cueCurrentRecord = inputBehaviour.clickSetsCurrentRecord;
             row.addEventListener('click', (evt) => {
+                LastSubfileClicked.x = 0;
+                LastSubfileClicked.y = 0;
+
                 SubfileController.setCurrentSelection(recordsContainer, row, cueCurrentRecord);
                 const targetTagName = evt.target.tagName;
                 if (evt.target === row || (targetTagName !== 'INPUT' && targetTagName !== 'SELECT' && targetTagName !== 'TEXTAREA' && targetTagName !== 'BUTTON')) {
-                    PositionCursor.toFirstInputInSubfileRow(row);
+                    if (!PositionCursor.toFirstInputInSubfileRow(row)) {
+                        LastSubfileClicked.x = evt.clientX;
+                        LastSubfileClicked.y = evt.clientY;
+                        if (debug) {
+                            console.log(`Click at x:${LastSubfileClicked.x} y:${LastSubfileClicked.y}`);
+                        }
+                    }
                 }
             });
 

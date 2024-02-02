@@ -123,10 +123,10 @@ class PositionCursor {
         const inputCount = inputsInRow.length;
 
         if (inputCount === 0) {
-            return;
+            return false;
         }
 
-        PositionCursor.toSelectorWithName(inputsInRow, inputCount);
+        return PositionCursor.toSelectorWithName(inputsInRow, inputCount);
     }
 
     static toSelectorWithName(selector, count) {
@@ -137,8 +137,9 @@ class PositionCursor {
             }
 
             input.focus();
-            break;
+            return true;
         }
+        return false;
     }
 
     static toLastInputInSubfile(sflEl) {
