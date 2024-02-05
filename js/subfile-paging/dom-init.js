@@ -159,29 +159,19 @@ class SubfileController {
         return result;
     }
 
-    static queryLikelyCurrentSflRecord() {
-        let likely = document.querySelector(`[class~="${EXPO_SUBFILE_CLASS.CURRENT_RECORD}"]`);
-        if (likely) {
-            return likely;
-        }
-
-        likely = document.querySelector(`[class~="${EXPO_SUBFILE_CLASS.CANDIDATE_CURRENT_RECORD}"]`);
-        if (likely) {
-            return likely;
-        }
-
+    static lastClickedSflRecord() {
         if (LastSubfileClicked.x > 0 && LastSubfileClicked.y > 0) {
-            likely = document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
+            return document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
         }
 
-        return likely;
+        return null;
     }
 
     static getClosestSubfileCtrlName(el) {
         if (!el) { return ''; }
 
         if (el.tagName === "BODY") {
-            const sflSelectedRecord = SubfileController.queryLikelyCurrentSflRecord();
+            const sflSelectedRecord = SubfileController.lastClickedSflRecord();
             if (sflSelectedRecord) {
                 el = sflSelectedRecord;
             }
