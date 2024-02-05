@@ -32,12 +32,16 @@ const EXPO_SUBFILE_CLASS = {
 const ICON_NAME_MORE = 'download';
 const ICON_NAME_NO_MORE = 'ban-circle';
 
-let debug = false;
-
-const LastSubfileClicked = {
+let LastSubfileClicked = {
     x: 0,
     y: 1
 }
+
+const STORAGE_NS = {
+    DISPLAYFILE: 'ASNA.SflCntl' // Don't use dds-window STORAGE_NS names like: 'ASNA.DisplayFile'
+}
+
+let debug = false;
 
 class SubfileController {
 
@@ -170,14 +174,12 @@ class SubfileController {
     static getClosestSubfileCtrlName(el) {
         if (!el) { return ''; }
 
-        if (el.tagName === "BODY") {
-            const sflSelectedRecord = SubfileController.lastClickedSflRecord();
-            if (sflSelectedRecord) {
-                el = sflSelectedRecord;
-            }
-            else if (window.asnaExpo.page.lastFocus) {
-                el = window.asnaExpo.page.lastFocus;
-            }
+        const sflSelectedRecord = SubfileController.lastClickedSflRecord();
+        if (sflSelectedRecord) {
+            el = sflSelectedRecord;
+        }
+        else if (window.asnaExpo.page.lastFocus) {
+            el = window.asnaExpo.page.lastFocus;
         }
 
         const row = el.closest(`[${AsnaDataAttrName.ROW}]`);
@@ -444,6 +446,35 @@ class SubfileController {
             }
         }
         return false;
+    }
+
+    static saveLastSubfileClicked(pagePathname) {
+        if (debug) {
+            console.log(`[Save] LastSubfileClicked for Page:${pagePathname}, x:${LastSubfileClicked.x} y:${LastSubfileClicked.y}`);
+        }
+
+        const storageKey = `${STORAGE_NS.DISPLAYFILE}${pagePathname}.lastSflClick`;
+        const value = JSON.stringify(LastSubfileClicked);
+        sessionStorage.setItem(storageKey, value);
+    }
+    
+    static restoreLastSubfileClicked(pagePathname) {
+        const storageKey = `${STORAGE_NS.DISPLAYFILE}${pagePathname}.lastSflClick`;
+        const storeVal = sessionStorage.getItem(storageKey);
+
+        LastSubfileClicked.x = 0;
+        LastSubfileClicked.y = 0;
+
+        if (storeVal) {
+            try {
+                LastSubfileClicked = JSON.parse(storeVal);
+            }
+            catch {}
+        }
+
+        if (debug) {
+            console.log(`[Restore] LastSubfileClicked for Page:${pagePathname}, x:${LastSubfileClicked.x} y:${LastSubfileClicked.y}`);
+        }
     }
 }
 

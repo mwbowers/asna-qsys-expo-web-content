@@ -145,6 +145,7 @@ class Page {
             PositionCursor.toDefaultField(thisForm);
         }
         this.initIcons(sflEndIcons);
+        SubfileController.restoreLastSubfileClicked(window.location.pathname);
         ContextMenu.initNonSubfileMenus(main);
         if (ContextMenu.prepare(main)) {
             main.addEventListener('click', this.handleMainPanelClickEvent, false);
@@ -523,6 +524,7 @@ class Page {
         RadioButtonGroup.prepareForSubmit(form);
         Signature.prepareForSubmit(form);
         DecDate.prepareForSubmit(form);
+        SubfileController.saveLastSubfileClicked(window.location.pathname);
         if (!delaySumbit) {
             form.submit();  // Note: No need to set this.suspendAsyncPost = false (page will be de-allocated).
         }
