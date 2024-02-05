@@ -315,10 +315,10 @@ class PositionCursor {
         }
         do {
             el = el.previousElementSibling;
-            if (PositionCursor.isInputCapable(el)) {
+            if (el && PositionCursor.isInputCapable(el)) {
                 return el;
             }
-            if (el.tagName === 'SPAN') { // Candidate may be wrapped (i.e. date-field)
+            if (el && el.tagName === 'SPAN') { // Candidate may be wrapped (i.e. date-field)
                 const candidates = candidate.querySelectorAll('input,select,textarea');
                 if (candidates.length) {
                     return candidates[0];

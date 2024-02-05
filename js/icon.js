@@ -115,6 +115,7 @@ class Icons {
         const namespaceURI = 'http://www.w3.org/2000/svg';
 
         const svg = document.createElementNS(namespaceURI, 'svg');
+        svg.style.pointerEvents = 'none'; // Click events should trigger on parent element.
         svg.setAttribute('x', 0);
         svg.setAttribute('y', 0);
         svg.setAttribute('width', width);

@@ -279,7 +279,7 @@ class Page {
         }
 
         if (focusElName === '*PREVIOUS') {
-            const focusEl = PositionCursor.resolvePrevInputSibling(el);
+            const focusEl = PositionCursor.resolvePrevInputSibling(event.target);
             if (focusEl) {
                 focusElName = focusEl.getAttribute('name');
             }
