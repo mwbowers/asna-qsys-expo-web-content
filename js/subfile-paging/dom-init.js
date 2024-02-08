@@ -359,7 +359,9 @@ class SubfileController {
 
         if (!isAtBottom) {
             span.addEventListener('click', (event) => {
-                sflEndClickAsPushKeyHandling(event, 'PgDn')
+                LastSubfileClicked.x = event.clientX;
+                LastSubfileClicked.y = event.clientY;
+                sflEndClickAsPushKeyHandling(event, 'PgDn');
             });
         }
 
