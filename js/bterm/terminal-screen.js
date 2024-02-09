@@ -98,7 +98,7 @@ class Screen {
             len = posStopAttr - fromPos;
             const endAttr = posAttr[seg + 3];
 
-            if (this.mapping.colFromPos(fromPos) === 0 && this.buffer[fromPos] === ' ') {
+            if (this.mapping.colFromPos(fromPos, this.buffer) === 0 && this.buffer[fromPos] === ' ') {
                 fromPos++;
                 len--;
             }
@@ -232,7 +232,7 @@ class Screen {
             return null;
         }
 
-        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos));
+        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos, this.buffer));
     }
 
     peekOnePrevStartOfFieldPos(pos) {
@@ -244,7 +244,7 @@ class Screen {
             return null;
         }
 
-        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos));
+        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos, this.regScr,this.buffer));
     }
 
     peekEndOfFieldPos(pos) {
@@ -256,7 +256,7 @@ class Screen {
             return null;
         }
 
-        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos));
+        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos,this.regScr.buffer));
     }
 
     insertTextToFieldAtPos(atPos, text) {

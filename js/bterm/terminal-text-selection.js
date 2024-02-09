@@ -8,6 +8,8 @@
 export { TextSelect, TEXT_SELECT_MODES, Point };
 
 import { TerminalRender, DATA_ATTR } from './terminal-render.js';
+import { BufferMapping } from './buffer-mapping.js'
+
 
 const TEXT_SELECT_MODES = {
     PASSIVE: '',
@@ -23,33 +25,29 @@ class TextSelect {
     constructor(selectionElement) {
         this.selectionElement = selectionElement;
         this.reset();
+        this.map = null;
     }
 
     clientPt(termParentEl, devPointerEvent) {
         const clientRect = termParentEl.getBoundingClientRect();
         const clientPoint = new Point(devPointerEvent.clientX - clientRect.left, devPointerEvent.clientY - clientRect.top);
-        if (_debug2) {
-            const target = devPointerEvent.target;
-            if (target) {
-                const dataRegen = TerminalRender.parseRegenDataAttr(target.getAttribute(DATA_ATTR.REGEN));
-                if (dataRegen.len) {
-                    const sectionRect = target.getBoundingClientRect();
-                    const pixPerChar = sectionRect.width / dataRegen.len;
-                    const pointedPosInSection = Math.trunc( (clientPoint.x - sectionRect.left) / pixPerChar );
-                    console.log(`${dataRegen.pos},${dataRegen.len} ${target.className} pixPerChar: ${pixPerChar} rel-pos: ${pointedPosInSection}`);
-                }
-                else {
-                    console.log(`No section: ${devPointerEvent.target.id}`);
-                }
+        const target = devPointerEvent.target;
+        if (target) {
+            const dataRegen = TerminalRender.parseRegenDataAttr(target.getAttribute(DATA_ATTR.REGEN));
+            if (dataRegen.len) {
+                const sectionRect = target.getBoundingClientRect();
+                const textW = sectionRect.width / dataRegen.len;
+                const textHitPos = dataRegen.pos + Math.trunc((clientPoint.x - sectionRect.left) / textW);
+                return { pt: clientPoint, textHit: true, textW: textW, textHitPos: textHitPos };
             }
         }
-        return clientPoint;
+        return { pt: clientPoint };
     }
 
     reset(callerMsg) {
         this.mode = TEXT_SELECT_MODES.PASSIVE;
         this.anchor = null;
-        this.selectedRect = null;
+        this.selectedCoordRect = null;
         this.hide();
         if (_debug) {
             if (callerMsg) {
@@ -83,11 +81,12 @@ class TextSelect {
         }
     }
 
-    setPotentialSelection(pt) {
-        this.anchor = pt;
+    setPotentialSelection(textPt, _5250cols, hasChinese) {
+        this.anchor = textPt;
         this.mode = TEXT_SELECT_MODES.POTENTIAL_SELECTION;
+        this.map = new BufferMapping(_5250cols, hasChinese);
 
-        if (_debug) { console.log('TextSelect.setPotentialSelection this.anchor = pt'); }
+        if (_debug) { console.log('TextSelect.setPotentialSelection this.anchor = textPt'); }
     }
 
     setInProgress() {
@@ -99,37 +98,31 @@ class TextSelect {
         if (_debug) { console.log('TextSelect.setComplete'); }
     }
 
-    calcRect(pt, cursorDim) {
-        this.selectedRect = TextSelect.normalizeCoordRect(cursorDim, this.anchor, pt);
-        return this.selectedRect;
+    calcRect(clientPt, textCell, regScr) {
+        this.selectedCoordRect = this.normalizeCoordRect(this.anchor, clientPt, textCell, regScr);
+        return this.selectedCoordRect;
     }
 
-    static getCursorDim(cursor) {
-        if (!cursor || !cursor.style || !cursor.style.width || !cursor.style.height) { return null; }
-        const w = parseFloat(cursor.style.width);
-        const h = parseFloat(cursor.style.height);
-        return { w: w, h: h }; 
+    static meetsMinMovementToStart(textCell, dx, dy) {
+        return dx > (textCell.w / 2) || dy > (textCell.h/2);
     }
 
-    static hasPointerMovedToStartSelection(cursorDim, dx, dy) {
-        return dx > cursorDim.w || dy > cursorDim.h;
-    }
+    normalizeCoordRect(clientPt1, clientPt2, textCell, regScr) {
+        const row = TextSelect.pixelToRow(textCell, Math.min(clientPt1.pt.y, clientPt2.pt.y));
+        const row2 = TextSelect.pixelToRow(textCell, Math.max(clientPt1.pt.y, clientPt2.pt.y));
+        const rows = row2 - row + 1;
 
-    static normalizeCoordRect(cursorDim, pt, pt2) {
-        const row = TextSelect.pixelToRow(cursorDim, Math.min(pt.y, pt2.y));
-        const row2 = TextSelect.pixelToRow(cursorDim, Math.max(pt.y, pt2.y));
-        const col = TextSelect.pixelToCol(cursorDim, Math.min(pt.x, pt2.x));
-        const col2 = TextSelect.pixelToCol(cursorDim, Math.max(pt.x, pt2.x));
+        const col = clientPt1.textHit ?
+            this.map.colFromPos(clientPt1.textHitPos, regScr.buffer) :
+            TextSelect.pixelToCol(textCell, clientPt1.pt.x);
+        const col2 = clientPt2.textHit ?
+            this.map.colFromPos(clientPt2.textHitPos + 1, regScr.buffer) : // Note: col2 has been incremented by one.
+            TextSelect.pixelToCol(textCell, clientPt2.pt.x) + 1;
+       
+        const fromCol = Math.min(col, col2);
+        const toCol = Math.max(col, col2);
 
-        return new Rect(row, col, row2 - row + 1, col2 - col + 1);
-    }
-
-    static rowToPixel(cursorDim, row) {
-        return row * cursorDim.h;
-    }
-
-    static colToPixel(cursorDim, col) {
-        return col * cursorDim.w;
+        return new CoordRect(row, fromCol, rows, toCol - fromCol);
     }
 
     static pixelToRow(cursorDim, pixels) {
@@ -176,7 +169,7 @@ class Point {
     }
 }
 
-class Rect {
+class CoordRect {
     constructor(row,col,rows,cols) {
         this.row = row;
         this.col = col;

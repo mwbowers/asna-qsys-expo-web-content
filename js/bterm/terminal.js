@@ -689,7 +689,7 @@ class Terminal {
     }
 
     processCopyText(noResetSelection) {
-        if (this.textSelect.mode !== TEXT_SELECT_MODES.COMPLETE || !this.textSelect.selectedRect) {
+        if (this.textSelect.mode !== TEXT_SELECT_MODES.COMPLETE || !this.textSelect.selectedCoordRect) {
             return false;
         }
 
@@ -701,9 +701,9 @@ class Terminal {
 
         while (pos <= toPos) {
             const rowBefore = map.rowFromPos(pos);
-            const colBefore = map.colFromPos(pos);
+            const colBefore = map.colFromPos(pos, this.regScr.buffer);
 
-            if (colBefore < this.textSelect.selectedRect.col || colBefore > (this.textSelect.selectedRect.col + (this.textSelect.selectedRect.cols - 1))) {
+            if (colBefore < this.textSelect.selectedCoordRect.col || colBefore > (this.textSelect.selectedCoordRect.col + (this.textSelect.selectedCoordRect.cols - 1))) {
                 text += this.addNewLineRowChanged(++pos, rowBefore);
                 continue;
             }
@@ -740,9 +740,9 @@ class Terminal {
         const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
         while (pos <= toPos) {
-            const colBefore = map.colFromPos(pos);
+            const colBefore = map.colFromPos(pos, this.regScr.buffer);
 
-            if (colBefore < this.textSelect.selectedRect.col || colBefore > (this.textSelect.selectedRect.col + (this.textSelect.selectedRect.cols - 1))) {
+            if (colBefore < this.textSelect.selectedCoordRect.col || colBefore > (this.textSelect.selectedCoordRect.col + (this.textSelect.selectedCoordRect.cols - 1))) {
                 pos = pos + 1;
                 continue;
             }
@@ -1132,7 +1132,7 @@ class Terminal {
                 pos = 0;
             }
 
-            this.cursor.col = map.colFromPos(pos);
+            this.cursor.col = map.colFromPos(pos, this.regScr.buffer);
             this.cursor.row = map.rowFromPos(pos);
 
             if (pos === initialPos || this.regScr.attrMap[pos].field) {  // back to the original position. Break infinite loop.
@@ -1217,7 +1217,7 @@ class Terminal {
 
     doPasteText(text, nonbreaking) {
         if (this.textSelect.mode === TEXT_SELECT_MODES.COMPLETE) { // Position at the upper-left corner of selection.
-            this.cursor.setPosition(this.textSelect.selectedRect.row, this.textSelect.selectedRect.col);
+            this.cursor.setPosition(this.textSelect.selectedCoordRect.row, this.textSelect.selectedCoordRect.col);
         }
 
         let iNLcol = this.cursor.col;
@@ -1242,7 +1242,7 @@ class Terminal {
                         if (c === '\r' && nc === '\n') { i++ }
 
                         c = text.charAt(i);
-                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
+                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos, this.regScr.buffer));
 
                         const row = this.cursor.row;
                         this.cursor.adjustToBounds();
@@ -1261,7 +1261,7 @@ class Terminal {
                 if (!sa || sa.usage === 'o') {
                     pos++;
                     if (pos < maxPos) {
-                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
+                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos, this.regScr.buffer));
 
                         const row = this.cursor.row;
                         this.cursor.adjustToBounds();
@@ -1282,7 +1282,7 @@ class Terminal {
                 }
                 if (c.charCodeAt(0) < 0x20) { c = ' '; }
 
-                this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
+                this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos, this.regScr.buffer));
                 this.writeOneCharAtCursor(c);
 
                 pos = this.regScr.coordToPos(this.cursor.row, this.cursor.col);
@@ -1302,7 +1302,7 @@ class Terminal {
                         let nc = text.charAt(i);
                         if (c === '\r' && nc === '\n') { i++; }
                         c = text.charAt(i);
-                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
+                        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos,this.regScr.buffer));
                     }
                 }
 
@@ -1417,7 +1417,7 @@ class Terminal {
                     return -1;
                 }
 
-                if (this.cursor.col > this.textSelect.selectedRect.col + this.textSelect.selectedRect.cols) {
+                if (this.cursor.col > this.textSelect.selectedCoordRect.col + this.textSelect.selectedCoordRect.cols) {
                     this.cursor.setPosition(this.cursor.row + 1, selectedRect.col);
                 }
             }
@@ -2250,7 +2250,7 @@ class Terminal {
                 if (atDbcsEnd) {
                     const tmpPos = coordToPos(sa.field.row, sa.field.col) + sa.field.len;
                     const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
-                    this.cursor.setPosition(map.rowFromPos(tmpPos), map.colFromPos(tmpPos));
+                    this.cursor.setPosition(map.rowFromPos(tmpPos), map.colFromPos(tmpPos, this.regScr.buffer));
                 }
                 this.moveToNextInputArea(this.cursor.row, this.cursor.col);
 
@@ -2536,7 +2536,7 @@ class Terminal {
     moveToPos(pos, dirtyInputFld) {
         const map = new BufferMapping(this.termLayout._5250.cols, this.regScr.hasDByte);
 
-        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos));
+        this.cursor.setPosition(map.rowFromPos(pos), map.colFromPos(pos, this.regScr.buffer));
         this.updateCursor(dirtyInputFld);
         this.renderStatusBar();
     }
@@ -2770,13 +2770,13 @@ class Terminal {
             return;
         }
 
-        pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
+        const textPt = this.textSelect.clientPt(this.AsnaTerm5250, event);
 
         //if (this.isPointInsideTerminal(pt)) {
             // ASNA.TouchSlider.CloseBottom();
         //}
 
-        this.textSelect.setPotentialSelection(pt);
+        this.textSelect.setPotentialSelection(textPt, this.termLayout._5250.cols, this.regScr.hasDByte );
 
         //if (id != ASNA.TEConst.MOUSE_POINTER_ID) {
         //    ASNA.FingerSwipe.PointerStart(pt);
@@ -2795,25 +2795,33 @@ class Terminal {
             return;
         }
 
-        const pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
+        const clientPt = this.textSelect.clientPt(this.AsnaTerm5250, event);
 
-        const dx = Math.abs(this.textSelect.anchor.x - pt.x);
-        const dy = Math.abs(this.textSelect.anchor.y - pt.y);
+        const dx = Math.abs(this.textSelect.anchor.pt.x - clientPt.pt.x);
+        const dy = Math.abs(this.textSelect.anchor.pt.y - clientPt.pt.y);
 
         TextSelect.log(`handlePointerMoveEvent (not complete): ${this.textSelect.currentModeString()}`);
 
         let potentialStart = false;
-        let cursorDim = TextSelect.getCursorDim(this.termCursor);
+        const textCell = {
+            w: parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')),
+            h: parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'))
+        };
+
         if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION) {
-            potentialStart = cursorDim && TextSelect.hasPointerMovedToStartSelection(cursorDim, dx, dy);
-            TextSelect.log(potentialStart ? `hasPointerMovedToStartSelection` : `NOT hasPointerMovedToStartSelection!!!`);
+            potentialStart = TextSelect.meetsMinMovementToStart(textCell, dx, dy);
         }
 
-        if (cursorDim && (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && potentialStart || this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS)) {
+        if (clientPt.textHit) { // May have hit a double-byte char text section.
+            textCell.w = clientPt.textW;
+        }
+
+        if (this.textSelect.mode === TEXT_SELECT_MODES.POTENTIAL_SELECTION && potentialStart ||
+            this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS) {
             this.textSelect.setInProgress(); 
 
-            const sel = this.textSelect.calcRect(pt, cursorDim);
-            const rect = this.getRect(sel.row, sel.col, sel.rows, sel.cols);
+            const coordSelection = this.textSelect.calcRect(clientPt, textCell, this.regScr);
+            const rect = this.getRect(coordSelection.row, coordSelection.col, coordSelection.rows, coordSelection.cols);
 
             this.textSelect.positionElement(rect, this.settingsStore.state.colors.sel);
             this.cursor.hide();
@@ -2832,7 +2840,7 @@ class Terminal {
             return;
         }
 
-        const pt = this.textSelect.clientPt(this.AsnaTerm5250, event);
+        const clientPt = this.textSelect.clientPt(this.AsnaTerm5250, event);
 
         if (this.textSelect.mode === TEXT_SELECT_MODES.IN_PROGRESS) {
             this.textSelect.setComplete();
@@ -2845,7 +2853,7 @@ class Terminal {
                 w: parseFloat(TerminalDOM.getGlobalVarValue('--term-col-width')),
                 h: parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'))
             };
-            const selectedCursorPos = TextSelect.getRowColFromPixel(cursorDim, pt);
+            const selectedCursorPos = TextSelect.getRowColFromPixel(cursorDim, clientPt.pt);
             this.textSelect.reset();
             if (Settings.close()) {
                 this.cursorKeyboardEventHandlingOperations('add');
@@ -2924,13 +2932,13 @@ class Terminal {
     }
 
     getSelRange() {
-        const from = this.regScr.coordToPos(this.textSelect.selectedRect.row, this.textSelect.selectedRect.col);
-        let to = from + this.textSelect.selectedRect.cols - 1;
+        const from = this.regScr.coordToPos(this.textSelect.selectedCoordRect.row, this.textSelect.selectedCoordRect.col);
+        let to = from + this.textSelect.selectedCoordRect.cols - 1;
 
-        if (this.textSelect.selectedRect.rows > 1) {
-            const a = ((this.termLayout._5250.cols - 1) - this.textSelect.selectedRect.col) + 1;
-            const b = (this.textSelect.selectedRect.rows - 2) * this.termLayout._5250.cols;
-            const c = this.textSelect.selectedRect.col + this.textSelect.selectedRect.cols;
+        if (this.textSelect.selectedCoordRect.rows > 1) {
+            const a = ((this.termLayout._5250.cols - 1) - this.textSelect.selectedCoordRect.col) + 1;
+            const b = (this.textSelect.selectedCoordRect.rows - 2) * this.termLayout._5250.cols;
+            const c = this.textSelect.selectedCoordRect.col + this.textSelect.selectedCoordRect.cols;
 
             to = from + a + b + c;
         }
