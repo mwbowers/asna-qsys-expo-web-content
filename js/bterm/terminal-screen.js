@@ -256,7 +256,7 @@ class Screen {
             return null;
         }
 
-        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos,this.regScr.buffer));
+        return new RowCol(this.mapping.rowFromPos(pos), this.mapping.colFromPos(pos, this.buffer));
     }
 
     insertTextToFieldAtPos(atPos, text) {
