@@ -8,6 +8,7 @@
     --term-col-width: 0; /* Computed on initialization. */
     --term-row-height: 0; /* Computed on initialization. */
     --term-dbyte-letter-spacing: 0; /* Computed when redering double-byte data */
+    --term-row-vert-padding: 0; /* Computed on initialization and updated when resizing. */
 }
 
 body {
@@ -70,6 +71,11 @@ body {
     border: 0;
     padding: 0;
     overflow: hidden;
+}
+
+#AsnaTerm5250 > * {
+    padding-top: var(--term-row-vert-padding);
+    padding-bottom: var(--term-row-vert-padding);
 }
 
 /*#AsnaTermCursor {

@@ -520,6 +520,9 @@ class TerminalDOM {
             else {
                 return new Promise((resolve) => {
                     t5250.style.cursor = 'wait';
+
+                    TerminalDOM.setGlobalVar('--term-row-vert-padding', '0px');
+
                     let fontSize = parseFloat(TerminalDOM.getGlobalVarValue('--term-font-size'));
 
                     const a = document.createElement('pre');
@@ -553,6 +556,13 @@ class TerminalDOM {
                         iterations++;
                     }
 
+                    const rowH = parseFloat(TerminalDOM.getGlobalVarValue('--term-row-height'));
+                    const hA = TerminalDOM.getGridElementClientHeight(a);
+
+                    if (rowH > hA) {
+                        TerminalDOM.setGlobalVar('--term-row-vert-padding', `${(rowH-hA)/2}px`);
+                    }
+
                     t5250.removeChild(a);
                     theFontSizeCache.save(fontFamily, gridColWidth, fontSize);
                     t5250.style.cursor = 'auto';
@@ -567,6 +577,10 @@ class TerminalDOM {
     static getGridElementClientRight(gridEl) {
         const rect = gridEl.getBoundingClientRect();
         return rect.right;
+    }
+    static getGridElementClientHeight(gridEl) {
+        const rect = gridEl.getBoundingClientRect();
+        return rect.height;
     }
 
     static getOutputElement(name) {
