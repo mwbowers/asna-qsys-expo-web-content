@@ -667,9 +667,13 @@ class Page {
                 const el = document.getElementById(icon.elementID[j]);
                 if (el) {
                     const shape = this.iconCache.getShape(icon.iconID);
-                    Icons.appendSvgContent(el, shape, el.getAttribute(AsnaDataAttrName.ICON_INTERNAL_COLOR), el.getAttribute(AsnaDataAttrName.ICON_INTERNAL_TITLE));
+                    const title = el.getAttribute(AsnaDataAttrName.ICON_INTERNAL_TITLE);
+                    Icons.appendSvgContent(el, shape, el.getAttribute(AsnaDataAttrName.ICON_INTERNAL_COLOR));
                     el.removeAttribute(AsnaDataAttrName.ICON_INTERNAL_COLOR);
                     el.removeAttribute(AsnaDataAttrName.ICON_INTERNAL_TITLE);
+                    if (title) {
+                        el.setAttribute('title', title);
+                    }
                 }
             }
         }

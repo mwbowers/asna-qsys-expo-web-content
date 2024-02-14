@@ -88,12 +88,12 @@ class Icons {
         return null;
     }
 
-    static appendSvgContent(div, shape, fillColor, title) {
-        if (!div) {
+    static appendSvgContent(iconContainer, shape, fillColor) {
+        if (!iconContainer) {
             return;
         }
 
-        let width = Icons.calcColWidth(div) * 2;
+        let width = Icons.calcColWidth(iconContainer) * 2;
 
         let xOrigin = 0;
         let yOrigin = -256;
@@ -126,16 +126,12 @@ class Icons {
             svg.setAttribute('fill', fillColor);
         }
 
-        if (title) {
-            svg.innerHTML = `<title>${title}</title>`;
-        }
-
         const href = document.querySelector(`g[id="${shape.id}"]`);
         if (href) { // Optimization - re-use svg 
             const use = document.createElementNS(namespaceURI, 'use');
             use.setAttribute('href', `#${shape.id}`);
             svg.appendChild(use);
-            div.appendChild(svg);
+            iconContainer.appendChild(svg);
             return;
         }
 
@@ -148,7 +144,7 @@ class Icons {
 
         g.appendChild(path);
         svg.appendChild(g);
-        div.appendChild(svg);
+        iconContainer.appendChild(svg);
     }
 
     static calcColWidth(parent) {
