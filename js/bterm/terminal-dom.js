@@ -143,10 +143,8 @@ class TerminalDOM {
         return { w: width, h: height };
     }
 
-    // TODO: Make obsolete ...
     static htmlMeasureText(fontHeight, fontFamily, text) {
         const measureDiv = document.createElement('div');
-        // const isIE_7 = navigator.appVersion.indexOf('MSIE 7.') > 0;
 
         if (!fontFamily) {
             console.log(`Assert: htmlMeasureText fontFamily is ${fontFamily} !`);
@@ -168,7 +166,7 @@ class TerminalDOM {
 
         document.body.appendChild(measureDiv);
 
-        const height = /*isIE_7 ? fontHeight : */ measureDiv.clientHeight;
+        const height = measureDiv.clientHeight;
         const width = measureDiv.clientWidth;
 
         document.body.removeChild(measureDiv);
@@ -214,26 +212,6 @@ class TerminalDOM {
             reduction = 0.5;
         }
         return Math.ceil(height * reduction); // Note: pixels.
-    }
-
-    static getCharWidth(char, termLayout, fontFamily) {
-        const fontSize = parseFloat(TerminalDOM.getGlobalVarValue('--term-font-size'));
-        return TerminalDOM.htmlMeasureText(fontSize, fontFamily, char).w;
-    }
-
-    static alignInputText(input, height, fSize) {
-        let top = 0;
-        let bottom = 0;
-        let lead = 0;
-
-        if (height > fSize) {
-            lead = height - fSize;
-            top = 0;
-            bottom = lead;
-        }
-
-        input.style.paddingTop = top + 'px';
-        input.style.paddingBottom = bottom + 'px';
     }
 
     static moveCaretPos(el, pos) {
