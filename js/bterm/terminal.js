@@ -1694,13 +1694,12 @@ class Terminal {
     }
 
     handleWindowBeforeUnloadEvent(event) {
-
-        if (this.submit && this.submit.activeFKey) {
-            return;
+        if (this.submit && this.submit.activeFKey || AjaxRequest.isAjaxError()) {
+            return; // Avoids alert: "Reload site? Changes you made may not be saved."
         }
 
-        (event || window.event).returnValue = null; // Note: Browsers no longer allow text of message to be changed.
-        return null; // Labels.get('ConfirmExitMsg');
+        // Note: Browsers no longer allow text of message to be changed.
+        return null;
     }
 
     handleTerminalMouseWheelEvent() {
