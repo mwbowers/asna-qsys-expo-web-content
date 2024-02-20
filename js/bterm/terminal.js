@@ -2708,6 +2708,7 @@ class Terminal {
         if (stream.redirectUrl) {
             this.submit.activeFKey = 'Redirecting';
             window.location = stream.redirectUrl;
+            return;
         }
 
         this.initTerminal();
