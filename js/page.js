@@ -698,7 +698,8 @@ class Page {
             main.style.width  = `${width}px`;
             main.style.height = `${height}px`;
 
-            DdsWindow.setVarBackgroundSize(main, width / window.devicePixelRatio); // Assume window.devicePixelRatio is never zero.
+            DdsWindow.setVarBackgroundSize(main, Math.floor(width / window.devicePixelRatio)); // Assume window.devicePixelRatio is never zero.
+            document.body.style.overflow = 'hidden'; // Avoid scrollbars
         };
     }
 }
