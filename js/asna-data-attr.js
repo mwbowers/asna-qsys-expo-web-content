@@ -79,5 +79,6 @@ const AsnaDataAttrName = {
     CHECK_MANDATORY: 'data-asna-check-mandatory',
     LEFT_PAD: 'data-asna-leftpad',
     GRID_PANEL_SPAN_STYLE_COL_SPAN: 'data-asna-grid-panel-col-span',
-    SFL_END_ADDED_ROW: 'data-asna-sfl-added-row'
+    SFL_END_ADDED_ROW: 'data-asna-sfl-added-row',
+    RECORD_ROLLCAP: 'data-asna-roll-capabilities'
 }

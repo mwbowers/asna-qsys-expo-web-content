@@ -19,7 +19,7 @@ import { Checkbox, RadioButtonGroup } from '../js/multiple-choice.js';
 import { WaitForResponseAnimation } from '../js/wait-response/wait-response-animation.js';
 import { NavigationMenu } from '../js/nav-menu.js';
 import { DdsWindow } from '../js/dds-window.js';
-import { SubfileController } from '../js/subfile-paging/dom-init.js';
+import { SubfileController, Compat } from '../js/subfile-paging/dom-init.js';
 import { SubfilePaging } from '../js/subfile-paging/paging.js';
 import { SubfilePagingStore, SubfileState } from '../js/subfile-paging/paging-store.js';
 import { PositionCursor } from '../js/page-position-cursor.js';
@@ -236,8 +236,7 @@ class Page {
                     }
                 }
             }
-
-            if (!postAjax) {
+            else {
                 this.pushKey(aidKey);
             }
         }
@@ -362,7 +361,7 @@ class Page {
 
         sflCtrlStore.sflRecords.from = Math.min(Math.min(sflCtrlStore.sflRecords.from, res.request.from), sflCtrlStore.sflRecords.from);
         sflCtrlStore.sflRecords.to = Math.max(sflCtrlStore.sflRecords.to, res.request.to-1);
-        sflCtrlStore.sflRecords.isLastPage = res.isLastPage ? 'true' : 'false';
+        sflCtrlStore.sflRecords.isLastPage = Compat.boolIsTrue(res.isLastPage);
         sflCtrlStore.current.topRrn = res.request.from;
 
         if (res.request.requestorAidKey === sflCtrlStore.fldDrop.aidKey) {
@@ -420,7 +419,7 @@ class Page {
         }
 
         if (sflCtrlStore.sflEnd.showSubfileEnd) {
-            const showAtBottom = sflCtrlStore.sflRecords.isLastPage === "true" ? sflCtrlStore.sflEnd.isSufileEnd : false;
+            const showAtBottom = Compat.boolIsTrue(sflCtrlStore.sflRecords.isLastPage) ?sflCtrlStore.sflEnd.isSufileEnd: false;
             const icon = SubfileController.addSubfileEndCue(
                 recordsContainer,
                 showAtBottom,

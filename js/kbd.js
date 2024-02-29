@@ -10,6 +10,7 @@ export { theKbd as Kbd, FoldDrop, AidKeyHelper, AidKeyMapIndex };
 import { PageAlert } from '../js/page-alert.js';
 import { SubfileController } from '../js/subfile-paging/dom-init.js';
 import { SubfilePagingStore } from '../js/subfile-paging/paging-store.js';
+import { AsnaDataAttrName } from '../js/asna-data-attr.js';
 
 // const KEY_CODE_TAB       =  9;
 const KEY_CODE_ESCAPE    = 27;
@@ -101,10 +102,10 @@ class Kbd {
                     }
 
                 case KEY_CODE_PAGE_UP:
-                    return Kbd.processRollKey(aidKeyHelper, 'PgUp', keyDetail.target);
+                    return Kbd.processRollKey('PgUp', keyDetail.target);
 
                 case KEY_CODE_PAGE_DOWN:
-                    return Kbd.processRollKey(aidKeyHelper, 'PgDn', keyDetail.target);
+                    return Kbd.processRollKey('PgDn', keyDetail.target);
 
                 default: {
                     let functionNumber = Kbd.keyCodeToMapIndex(keyDetail);
@@ -131,38 +132,117 @@ class Kbd {
         return { ignore: true };
     }
 
-    static processRollKey(aidKeyHelper, aidKey, inputEl) {
-        let subfileControlName = SubfileController.getClosestSubfileCtrlName(inputEl);
+    static processRollKey(aidKey, inputEl) {
+        const selectedSflCtrlName = SubfileController.getClosestSubfileCtrlName(inputEl);
+        let action = {};
 
-        if (!subfileControlName) { // No subfile has been selected ... look for first one.
-            subfileControlName = SubfileController.getFirstSubfileCtrlName();
-        }
-
-        if (subfileControlName) {
-            const sflCtrlStore = SubfilePagingStore.getSflCtlStore(subfileControlName);
+        if (selectedSflCtrlName) {
+            const sflCtrlStore = SubfilePagingStore.getSflCtlStore(selectedSflCtrlName);
             if (sflCtrlStore) {
-
-                if (aidKey === "PgUp") {
-                    if (sflCtrlStore.current && sflCtrlStore.current.topRrn === 0 && aidKeyHelper.isEnabled(AidKeyMapIndex.PageUp)) {
-                        return { aidKeyToPush: aidKey, shouldCancel: true }; // We know there would be more records above, post PgUp
-                    }
+                action = Kbd.handleRoll(aidKey, sflCtrlStore);
+                if (action.aidKeyToPush) {
+                    return action;
                 }
-                else { // aidKey === "PgDn"
-                    if (sflCtrlStore.sflRecords.isLastPage === "true" && aidKeyHelper.isEnabled(AidKeyMapIndex.PageDown)) {
-                        return { aidKeyToPush: aidKey, shouldCancel: true }; // We know there would be more records above, post PgDn
-                    }
-                }
-
-                return { aidKeyToPush: aidKey, shouldCancel: true, useAjax: true, sflCtlStore: sflCtrlStore };
             }
         }
+        else if (window.asnaExpo.page.lastFocus) { // Non-subfile record, and input element has focus.
+            const nonSflRecord = window.asnaExpo.page.lastFocus.closest(`[${AsnaDataAttrName.RECORD}]`);
+            if (nonSflRecord) {
+                const rollCaps = nonSflRecord.getAttribute(AsnaDataAttrName.RECORD_ROLLCAP);
+                if (rollCaps) {
+                    action = Kbd.handleRoll(aidKey, '', nonSflRecord);
+                    if (action.aidKeyToPush) {
+                        return action;
+                    }
+                }
+            }
+            const firstSflCtrlName = SubfileController.getFirstSubfileCtrlName();
+            if (firstSflCtrlName) {
+                const firstCtrlStore = SubfilePagingStore.getSflCtlStore(firstSflCtrlName);
+                if (firstCtrlStore) {
+                    action = Kbd.handleRoll(aidKey, sflCtrlStore);
+                }
+            }
 
-        if (aidKeyHelper.isEnabled(AidKeyMapIndex.PageDown)) {
+            if (action.aidKeyToPush) {
+                return action;
+            }
+        }
+        else { // Not in subfile and non-subfile record not selected (input focus)
             return { aidKeyToPush: aidKey, shouldCancel: true };
         }
 
-        Kbd.showInvalidRollAlert();
+        if (action.showAlert) {
+            Kbd._showInvalidRollAlert();
+        }
         return { returnBooleanValue: false, shouldCancel: true };
+    }
+
+    static handleRoll(aidKey, sflCtrlStore, nonSflRecord) {
+        if (sflCtrlStore) { // Subfile selected
+            if (sflCtrlStore.sflRecords.isExpandable) {
+                if (aidKey === "PgUp") {
+                    if (sflCtrlStore.current && sflCtrlStore.current.topRrn === 0) {
+                        if (sflCtrlStore.sflRecords.pgUpEnabled) { // Submit PgUp
+                            return { aidKeyToPush: aidKey, shouldCancel: true };
+                        }
+                    }
+                    else { // Not in top-record do AJAX
+                        return { aidKeyToPush: aidKey, shouldCancel: true, useAjax: true, sflCtlStore: sflCtrlStore };
+                    }
+
+                    return { showAlert: true };
+                }
+                else { // aidKey === "PgDn"
+                    if (sflCtrlStore.sflRecords.isLastPage) {
+                        if (sflCtrlStore.sflRecords.pgDnEnabled) { // Submit PgDn
+                            return { aidKeyToPush: aidKey, shouldCancel: true };
+                        }
+                    }
+                    else { // Not in last-page do AJAX
+                        return { aidKeyToPush: aidKey, shouldCancel: true, useAjax: true, sflCtlStore: sflCtrlStore };
+                    }
+
+                    return { showAlert: true };
+                }
+            }
+            else { // Fixed subfile
+                if (aidKey === "PgUp" && sflCtrlStore.sflRecords.pgUpEnabled ||
+                    aidKey === "PgDn" && sflCtrlStore.sflRecords.pgDnEnabled) { // Submit AidKey
+                    return { aidKeyToPush: aidKey, shouldCancel: true };
+                }
+                else {
+                    const firstSflCtrlName = SubfileController.getFirstSubfileCtrlName();
+
+                    if (firstSflCtrlName && sflCtrlStore.name !== firstSflCtrlName) {
+                        const firstCtrlStore = SubfilePagingStore.getSflCtlStore(firstSflCtrlName);
+                        if (firstCtrlStore) {
+                            return Kbd.handleRoll(aidKey, firstCtrlStore);
+                        }
+                    }
+                }
+            }
+        }
+        else if (nonSflRecord) {
+            const rollCaps = nonSflRecord.getAttribute(AsnaDataAttrName.RECORD_ROLLCAP);
+            if (!rollCaps) { throw new Error(`Unexpected empty ${AsnaDataAttrName.RECORD_ROLLCAP} attribute.`) }
+            const enabledRoll = JSON.parse(rollCaps);
+            if (aidKey === 'PgDn' && enabledRoll.pgdn || aidKey === 'PgUp' && enabledRoll.pgup) {
+                return { aidKeyToPush: aidKey, shouldCancel: true };
+            }
+            else {
+                const firstSflCtrlName = SubfileController.getFirstSubfileCtrlName();
+                const firstCtrlStore = SubfilePagingStore.getSflCtlStore(firstSflCtrlName);
+                if (firstCtrlStore) {
+                    const recordAction = Kbd.handleRoll(aidKey, firstCtrlStore);
+                    if (recordAction.aidKeyToPush) {
+                        return recordAction;
+                    }
+                }
+            }
+
+        }
+        return { aidKeyToPush: aidKey, shouldCancel: true };
     }
 
     static parseKey(event) {
@@ -206,6 +286,10 @@ class Kbd {
     }
     
     showInvalidRollAlert() {
+        Kbd._showInvalidRollAlert();
+    }
+
+    static _showInvalidRollAlert() {
         const errorMsg = KEY_NOT_VALID_MSG.PgUp_PgDown;
         if (!PageAlert.prependPanelMsg(errorMsg)) {
             PageAlert.show(errorMsg, OK_TEXT);

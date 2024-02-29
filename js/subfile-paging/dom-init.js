@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export { SubfileController, Subfile, EXPO_SUBFILE_CLASS };
+export { SubfileController, Subfile, EXPO_SUBFILE_CLASS, Compat };
 
 import { SubfilePagingStore, SubfileState, InputState } from './paging-store.js';
 import { PositionCursor } from '../page-position-cursor.js';
@@ -87,7 +87,7 @@ class SubfileController {
                                     //   no matter how the option indicator is set.
                                     //   When the last page of the subfile is displayed, the operating system displays the plus sign, if the indicator is off. 
                                     //   It does not display the plus sign, if the indicator is on.
-                                    const showAtBottom = sflCtrlStore.sflRecords.isLastPage === "true" ? sflCtrlStore.sflEnd.isSufileEnd : false;
+                                    const showAtBottom = Compat.boolIsTrue(sflCtrlStore.sflRecords.isLastPage) ? sflCtrlStore.sflEnd.isSufileEnd : false;
 
                                     const icon = SubfileController.addSubfileEndCue(
                                         recordsContainer,
@@ -651,5 +651,14 @@ class Subfile {
 
         return fieldName.substr(0, iStart) === rowfieldNameCand.substr(0, ciStart) && 
             fieldName.substr(iEnd+1) === rowfieldNameCand.substr(ciEnd+1);
+    }
+}
+
+class Compat { // Compatibility with older releases.
+    static boolIsTrue(item) {
+        if (typeof item === 'string') {
+            return item === 'true';
+        }
+        return item !== false;
     }
 }
