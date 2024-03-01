@@ -11,7 +11,7 @@ import { SubfilePagingStore, SubfileState, InputState } from './paging-store.js'
 import { PositionCursor } from '../page-position-cursor.js';
 import { DdsGrid } from '../dds-grid.js';
 import { Base64 } from '../base-64.js';
-import { AsnaDataAttrName } from '../asna-data-attr.js';
+import { AsnaDataAttrName, JsonAttr } from '../asna-data-attr.js';
 import { FeedbackArea } from '../feedback-area.js';
 import { ContextMenu } from '../dropdown.js';
 
@@ -163,12 +163,37 @@ class SubfileController {
         return result;
     }
 
+    static resetLastClickedSubfileValues() {
+        LastSubfileClicked.x = 0;
+        LastSubfileClicked.y = 0;
+    }
+
     static lastClickedSflRecord() {
         if (LastSubfileClicked.x > 0 && LastSubfileClicked.y > 0) {
             return document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
         }
 
         return null;
+    }
+
+    static resetLastClickedSubfile(el) {
+        const closestRecord = SubfileController.getClosestToElementRecord(el);
+        if (!closestRecord) { return; }
+
+        const recordName = closestRecord.getAttribute(AsnaDataAttrName.RECORD);
+        if (!recordName) { return; }
+
+        if (SubfilePagingStore.getSflCtlStore(recordName)) {
+            return; // In a subfile, don't care.
+        }
+
+        // Element in a non-subfile record, check to see if ROLL capabilities exist.
+        const rollCaps = closestRecord.getAttribute(AsnaDataAttrName.RECORD_ROLLCAP);
+        const enabledRoll = JsonAttr.tryParse(rollCaps);
+
+        if (enabledRoll.pgdn || enabledRoll.pgup) {
+            SubfileController.resetLastClickedSubfileValues();
+        }
     }
 
     static getClosestSubfileCtrlName(el) {
@@ -182,13 +207,10 @@ class SubfileController {
             el = window.asnaExpo.page.lastFocus;
         }
 
-        const row = el.closest(`[${AsnaDataAttrName.ROW}]`);
-        if (!row) { return ''; }
+        const closestRecord = SubfileController.getClosestToElementRecord(el);
+        if (!closestRecord) { return ''; }
 
-        const record = row.closest(`[${AsnaDataAttrName.RECORD}]`);
-        if (!record) { return ''; }
-
-        const recordName = record.getAttribute(AsnaDataAttrName.RECORD);
+        const recordName = closestRecord.getAttribute(AsnaDataAttrName.RECORD);
         if (!recordName) { return ''; }
 
         const store = SubfilePagingStore.getSflCtlStore(recordName);
@@ -196,6 +218,13 @@ class SubfileController {
             return store.name;
         }
         return '';
+    }
+
+    static getClosestToElementRecord(el) {
+        const row = el.closest(`[${AsnaDataAttrName.ROW}]`);
+        if (!row) { return null; }
+
+        return row.closest(`[${AsnaDataAttrName.RECORD}]`);
     }
 
     static getFirstSubfileCtrlName() {
@@ -227,8 +256,7 @@ class SubfileController {
 
             const cueCurrentRecord = inputBehaviour.clickSetsCurrentRecord;
             row.addEventListener('click', (evt) => {
-                LastSubfileClicked.x = 0;
-                LastSubfileClicked.y = 0;
+                SubfileController.resetLastClickedSubfileValues();
 
                 SubfileController.setCurrentSelection(recordsContainer, row, cueCurrentRecord);
                 const targetTagName = evt.target.tagName;

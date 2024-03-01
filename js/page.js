@@ -96,7 +96,7 @@ class Page {
         Checkbox.init(thisForm);
         RadioButtonGroup.init(thisForm);
         Signature.init(thisForm);
-        this.addOnFocusEventListener();
+        // Don't set the focusEventHandler until the cursor has been set (we want notification after first time).
 
         WaitForResponseAnimation.init(thisForm);
         const twoPanelContainer = NavigationMenu.init();
@@ -144,6 +144,7 @@ class Page {
         else {
             PositionCursor.toDefaultField(thisForm);
         }
+        this.addOnFocusEventListener(); // Note: set handler AFTER positioning cursor.
         this.initIcons(sflEndIcons);
         SubfileController.restoreLastSubfileClicked(window.location.pathname);
         ContextMenu.initNonSubfileMenus(main);
@@ -301,6 +302,8 @@ class Page {
                 PositionCursor.selectText(element, 0, toPos);
             }
         }
+
+        SubfileController.resetLastClickedSubfile(element);
     }
 
     handleWindowResizeEvent() {

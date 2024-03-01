@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export { AsnaDataAttrName };
+export { AsnaDataAttrName, JsonAttr };
 
 const AsnaDataAttrName = {
     // 'Div' identification
@@ -15,7 +15,7 @@ const AsnaDataAttrName = {
     EXCLUDE_EMPTY_ROWS: 'data-asna-x-rows',
 
     // Subfile initialization 
-    SFLC: 'data-asna-sflc', 
+    SFLC: 'data-asna-sflc',
 
     // Element's click parameters.
     ONCLICK_PUSHKEY: 'data-asna-onclick-pushkey',
@@ -66,7 +66,7 @@ const AsnaDataAttrName = {
 
     // Context menus
     RECORD_CONTEXT_MENUS: 'data-asna-context-menus',    // Excludes subfile controller record.
-    CONTEXT_MENU:  'data-asna-content-menu',
+    CONTEXT_MENU: 'data-asna-content-menu',
 
     // DecRangeField
     DEC_RANGE_OPTIONS: 'data-asna-decrange-options',
@@ -82,3 +82,21 @@ const AsnaDataAttrName = {
     SFL_END_ADDED_ROW: 'data-asna-sfl-added-row',
     RECORD_ROLLCAP: 'data-asna-roll-capabilities'
 }
+
+class JsonAttr {
+    static tryParse(jsonStr) {
+        let result = {};
+
+        if (jsonStr && typeof jsonStr === 'string') {
+            try {
+                result = JSON.parse(jsonStr);
+            } catch (e) {
+                return result;
+            }
+        }
+
+        return result;
+    }
+}
+
+

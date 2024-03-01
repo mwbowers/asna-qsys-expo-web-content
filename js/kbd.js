@@ -10,7 +10,7 @@ export { theKbd as Kbd, FoldDrop, AidKeyHelper, AidKeyMapIndex };
 import { PageAlert } from '../js/page-alert.js';
 import { SubfileController } from '../js/subfile-paging/dom-init.js';
 import { SubfilePagingStore } from '../js/subfile-paging/paging-store.js';
-import { AsnaDataAttrName } from '../js/asna-data-attr.js';
+import { AsnaDataAttrName, JsonAttr } from '../js/asna-data-attr.js';
 
 // const KEY_CODE_TAB       =  9;
 const KEY_CODE_ESCAPE    = 27;
@@ -225,8 +225,7 @@ class Kbd {
         }
         else if (nonSflRecord) {
             const rollCaps = nonSflRecord.getAttribute(AsnaDataAttrName.RECORD_ROLLCAP);
-            if (!rollCaps) { throw new Error(`Unexpected empty ${AsnaDataAttrName.RECORD_ROLLCAP} attribute.`) }
-            const enabledRoll = JSON.parse(rollCaps);
+            const enabledRoll = JsonAttr.tryParse(rollCaps);
             if (aidKey === 'PgDn' && enabledRoll.pgdn || aidKey === 'PgUp' && enabledRoll.pgup) {
                 return { aidKeyToPush: aidKey, shouldCancel: true };
             }
