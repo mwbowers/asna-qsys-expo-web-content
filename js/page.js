@@ -96,7 +96,7 @@ class Page {
         Checkbox.init(thisForm);
         RadioButtonGroup.init(thisForm);
         Signature.init(thisForm);
-        // Don't set the focusEventHandler until the cursor has been set (we want notification after first time).
+        this.addOnFocusEventListener();
 
         WaitForResponseAnimation.init(thisForm);
         const twoPanelContainer = NavigationMenu.init();
@@ -144,13 +144,13 @@ class Page {
         else {
             PositionCursor.toDefaultField(thisForm);
         }
-        this.addOnFocusEventListener(); // Note: set handler AFTER positioning cursor.
         this.initIcons(sflEndIcons);
         SubfileController.restoreLastSubfileClicked(window.location.pathname);
         ContextMenu.initNonSubfileMenus(main);
         if (ContextMenu.prepare(main)) {
             main.addEventListener('click', this.handleMainPanelClickEvent, false);
         }
+        this.resetLastClickOnFocus = true;
     }
 
     static setupAutoPostback(form, aidKeyBitmap) {
@@ -303,7 +303,9 @@ class Page {
             }
         }
 
-        SubfileController.resetLastClickedSubfile(element);
+        if (this.resetLastClickOnFocus) {
+            SubfileController.resetLastClickedSubfile(element);
+        }
     }
 
     handleWindowResizeEvent() {
