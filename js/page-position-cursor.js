@@ -16,40 +16,42 @@ class PositionCursor {
         const rowCol = PositionCursor.parseRowCol(rc);
         if (!(rowCol.row && rowCol.col) ){ return; }
 
-        const rowEl = PositionCursor.findRow(form, rowCol.row);
-        if (!rowEl) { return; }
+        const rows = PositionCursor.findRows(form, rowCol.row);
+        if (!rows || rows.length === 0) { return; }
 
-        const inRow = PositionCursor.gridElements(rowEl);
         let firstInput = null;
-        for (let i = 0, l = inRow.length; i < l; i++) {
-            let candidate = inRow[i];
-            if (!PositionCursor.isInputCapable(candidate)) {
-                if (candidate.tagName !== 'SPAN') {
-                    continue;
+        for (let r = 0; r < rows.length; r++) {
+            const inRow = PositionCursor.gridElements(rows[r]);
+            for (let i = 0, l = inRow.length; i < l; i++) {
+                let candidate = inRow[i];
+                if (!PositionCursor.isInputCapable(candidate)) {
+                    if (candidate.tagName !== 'SPAN') {
+                        continue;
+                    }
+                    const candidates = candidate.querySelectorAll('input,select,textarea'); // Candidate may be wrapped (i.e. date-field)
+                    if (!candidates.length) {
+                        continue;
+                    }
+                    candidate = candidates[0];
                 }
-                const candidates = candidate.querySelectorAll('input,select,textarea'); // Candidate may be wrapped (i.e. date-field)
-                if (!candidates.length) {
-                    continue;
+                if (!firstInput) {
+                    firstInput = candidate;
                 }
-                candidate = candidates[0];
-            }
-            if (!firstInput) {
-                firstInput = candidate;
-            }
-            const virtRowColAttrVal = candidate.getAttribute(AsnaDataAttrName.ROWCOL);
-            if (virtRowColAttrVal) {
-                const virtRowCol = PositionCursor.parseRowCol(virtRowColAttrVal);
-                if ((virtRowCol.row && virtRowCol.col) && virtRowCol.row != rowCol.row ) { continue; }
-            }
-            const start = parseInt(candidate.style.gridColumnStart, 10); // Note: CSS Grid start, end are "one" based.
-            const end = parseInt(candidate.style.gridColumnEnd, 10);
-            if (rowCol.col >= start && rowCol.col <= end) {
-                const offset = rowCol.col-start;
-                candidate.focus(); // Note: Page.handleOnFocusEvent will selectText (by default)
-                if (offset > 0) {
-                    setTimeout( () => PositionCursor.selectText(candidate, offset, offset), 1);
+                const virtRowColAttrVal = candidate.getAttribute(AsnaDataAttrName.ROWCOL);
+                if (virtRowColAttrVal) {
+                    const virtRowCol = PositionCursor.parseRowCol(virtRowColAttrVal);
+                    if ((virtRowCol.row && virtRowCol.col) && virtRowCol.row != rowCol.row) { continue; }
                 }
-                return;
+                const start = parseInt(candidate.style.gridColumnStart, 10); // Note: CSS Grid start, end are "one" based.
+                const end = parseInt(candidate.style.gridColumnEnd, 10);
+                if (rowCol.col >= start && rowCol.col <= end) {
+                    const offset = rowCol.col - start;
+                    candidate.focus(); // Note: Page.handleOnFocusEvent will selectText (by default)
+                    if (offset > 0) {
+                        setTimeout(() => PositionCursor.selectText(candidate, offset, offset), 1);
+                    }
+                    return;
+                }
             }
         }
 
@@ -229,7 +231,8 @@ class PositionCursor {
         }
     }
 
-    static findRow(form,number) {
+    static findRows(form, number) {
+        const result = [];
         const records = DdsGrid.findAllRecords(form);
         if (!records) { return null; }
 
@@ -254,12 +257,12 @@ class PositionCursor {
                     fromRow = toRow = parseInt(rowVal, 10);
                 }
                 if (number >= fromRow && number <= toRow) {
-                    return row;
+                    result.push(row);
                 }
             }
         }
 
-        return null;
+        return result;
     }
 
     static gridElements(parentRow) {
