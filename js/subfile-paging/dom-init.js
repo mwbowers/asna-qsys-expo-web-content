@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export { SubfileController, Subfile, EXPO_SUBFILE_CLASS, Compat };
+export { SubfileController, Subfile, EXPO_SUBFILE_CLASS, Storage, Compat };
 
 import { SubfilePagingStore, SubfileState, InputState } from './paging-store.js';
 import { PositionCursor } from '../page-position-cursor.js';
@@ -38,7 +38,7 @@ let LastSubfileClicked = {
 }
 
 const STORAGE_NS = {
-    DISPLAYFILE: 'ASNA.SflCntl' // Don't use dds-window STORAGE_NS names like: 'ASNA.DisplayFile'
+    SFLCNTRL: 'ASNA.SflCntl' // Don't use dds-window STORAGE_NS names like: 'ASNA.DisplayFile'
 }
 
 let debug = false;
@@ -483,23 +483,19 @@ class SubfileController {
             console.log(`[Save] LastSubfileClicked for Page:${pagePathname}, x:${LastSubfileClicked.x} y:${LastSubfileClicked.y}`);
         }
 
-        const storageKey = `${STORAGE_NS.DISPLAYFILE}${pagePathname}.lastSflClick`;
-        const value = JSON.stringify(LastSubfileClicked);
-        sessionStorage.setItem(storageKey, value);
+        const storageKey = `${STORAGE_NS.SFLCNTRL}${pagePathname}.lastSflClick`;
+        Storage.serailize(storageKey, LastSubfileClicked);
     }
     
     static restoreLastSubfileClicked(pagePathname) {
-        const storageKey = `${STORAGE_NS.DISPLAYFILE}${pagePathname}.lastSflClick`;
-        const storeVal = sessionStorage.getItem(storageKey);
+        const storageKey = `${STORAGE_NS.SFLCNTRL}${pagePathname}.lastSflClick`;
+        const obj = Storage.deserialize(storageKey);
 
         LastSubfileClicked.x = 0;
         LastSubfileClicked.y = 0;
 
-        if (storeVal) {
-            try {
-                LastSubfileClicked = JSON.parse(storeVal);
-            }
-            catch {}
+        if (obj) {
+            LastSubfileClicked = obj;
         }
 
         if (debug) {
@@ -688,5 +684,25 @@ class Compat { // Compatibility with older releases.
             return item === 'true';
         }
         return item !== false;
+    }
+}
+
+
+class Storage {
+    static serailize(storageKey, obj) {
+        const value = JSON.stringify(obj);
+        sessionStorage.setItem(storageKey, value);
+    }
+
+    static deserialize(storageKey) {
+        const storeVal = sessionStorage.getItem(storageKey);
+
+        if (storeVal) {
+            try {
+                return JSON.parse(storeVal);
+            }
+            catch { }
+        }
+        return null;
     }
 }

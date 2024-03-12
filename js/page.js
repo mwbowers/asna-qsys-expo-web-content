@@ -19,7 +19,7 @@ import { Checkbox, RadioButtonGroup } from '../js/multiple-choice.js';
 import { WaitForResponseAnimation } from '../js/wait-response/wait-response-animation.js';
 import { NavigationMenu } from '../js/nav-menu.js';
 import { DdsWindow } from '../js/dds-window.js';
-import { SubfileController, Compat } from '../js/subfile-paging/dom-init.js';
+import { SubfileController, Compat, Storage } from '../js/subfile-paging/dom-init.js';
 import { SubfilePaging } from '../js/subfile-paging/paging.js';
 import { SubfilePagingStore, SubfileState } from '../js/subfile-paging/paging-store.js';
 import { PositionCursor } from '../js/page-position-cursor.js';
@@ -34,6 +34,10 @@ import { Signature } from './signature/signature.js';
 import { BrowserInfo } from './detection.js';
 
 const MAIN_SELECTOR = 'main[role=main]';
+
+const STORAGE_NS = {
+    PAGEGLOBALS: 'ASNA.Page'
+}
 
 class Page {
     constructor() {
@@ -110,8 +114,9 @@ class Page {
         if (DdsWindow.activeWindowRecord!==null) {
             const imgData = DdsWindow.restoreWindowPrevPage();
             this.winPopup = DdsWindow.initPopup(thisForm);
-            if (imgData) {
-                this.setMainSizeToImageSize(main, imgData);
+            if (imgData && main) {
+                const rect = Page.restoreLastMainHeight('/');
+                main.style.height = rect ? `${rect.height}px` : 'calc(27 * 1.4em)';
             }
         }
 
@@ -515,7 +520,7 @@ class Page {
             return;
         }
 
-        const delaySumbit = DdsWindow.prepareForSubmit(form, this.handleHtmlToImageCompleteEvent, this.handleHtmlToImageFilterEvent );
+        const delaySubmit = DdsWindow.prepareForSubmit(form, this.handleHtmlToImageCompleteEvent, this.handleHtmlToImageFilterEvent );
 
         WaitForResponseAnimation.prepareWaitAnimation(true);
         WaitForResponseAnimation.showAnimationIfLongWait({ checkTransaction: true, normalWaitTimeout: 2000 });
@@ -529,8 +534,12 @@ class Page {
         Signature.prepareForSubmit(form);
         DecDate.prepareForSubmit(form);
         SubfileController.saveLastSubfileClicked(window.location.pathname);
-        if (!delaySumbit) {
+        if (!delaySubmit) {
             form.submit();  // Note: No need to set this.suspendAsyncPost = false (page will be de-allocated).
+        }
+        else {
+            const main = form.querySelector(MAIN_SELECTOR);
+            Page.saveLastMainHeight(main, '/');
         }
     }
 
@@ -690,21 +699,17 @@ class Page {
         }
     }
 
-    setMainSizeToImageSize( main, imgData ) {
-        const img = document.createElement("img");
-        img.src = imgData;
-        img.onload = function () {
-            img.style.visibility = 'hidden';
-            document.body.appendChild(img);
-            const width = img.clientWidth;
-            const height = img.clientHeight;
-            document.body.removeChild(img);
-            main.style.width  = `${width}px`;
-            main.style.height = `${height}px`;
+    static saveLastMainHeight(main, pagePathname) {
+        if (main) {
+            const rect = main.getBoundingClientRect();
+            const storageKey = `${STORAGE_NS.PAGEGLOBALS}${pagePathname}.lastMain`;
+            Storage.serailize(storageKey, { height: rect.height });
+        }
+    }
 
-            DdsWindow.setVarBackgroundSize(main, Math.floor(width / window.devicePixelRatio)); // Assume window.devicePixelRatio is never zero.
-            document.body.style.overflow = 'hidden'; // Avoid scrollbars
-        };
+    static restoreLastMainHeight(pagePathname) {
+        const storageKey = `${STORAGE_NS.PAGEGLOBALS}${pagePathname}.lastMain`;
+        return Storage.deserialize(storageKey);
     }
 }
 
