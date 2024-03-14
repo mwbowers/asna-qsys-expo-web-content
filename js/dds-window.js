@@ -28,7 +28,6 @@ const FLAG = {
 
 const NEXT_BACKGROUND_IMAGE_NAME = '*NEXT';
 const MAIN_SELECTOR = 'main[role=main]';
-const VAR_WIN_BKGND_POSITION = '--main-window-background-position';
 
 class DdsWindow {
     constructor() {
@@ -369,19 +368,6 @@ class DdsWindow {
 
         DomEvents.cancelEvent(event);
         delete this.dragging;
-    }
-
-    setVarBackgroundPosition() {
-        const main = document.querySelector(MAIN_SELECTOR);
-        if (main) {
-            const mainRect = main.getBoundingClientRect();
-            const cssVarRoot = document.documentElement.style;
-            if (cssVarRoot && mainRect) {
-                cssVarRoot.setProperty(VAR_WIN_BKGND_POSITION, `${mainRect.left}px ${mainRect.top}px`);
-            }
-            return main;
-        }
-        return null;
     }
 }
 

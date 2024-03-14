@@ -8,7 +8,6 @@
 export { theNavMenu as NavigationMenu };
 
 import { AsnaDataAttrName } from '../js/asna-data-attr.js';
-import { DdsWindow } from '../js/dds-window.js';
 import { Base64 } from '../js/base-64.js';
 
 class NavigationMenu {
@@ -70,9 +69,6 @@ class NavigationMenu {
         if (nav.classList) {
             nav.classList.remove('display-element-uninitialized');
         }
-
-        DdsWindow.setVarBackgroundPosition();
-
         return container;
     }
 

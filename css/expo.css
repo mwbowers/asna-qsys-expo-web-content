@@ -27,8 +27,6 @@
     --dds-grid-row-padding-top: 0.2em;
     --dds-grid-row-padding-bottom: 0.2em;
     --main-window-background: url();
-    --main-window-background-position: left top;
-    --main-window-background-size: auto;
 }
 
 /*-------------------------------------------*\
@@ -121,9 +119,9 @@
 .display-element-initialized {
     background-image: var(--main-window-background);
     background-repeat: no-repeat;
-    background-size: 100%; 
-    background-attachment: fixed;
-    background-position: var(--main-window-background-position);
+    background-attachment: local;
+    background-size: contain; 
+    background-position: left top; 
 }
 
 .dds-grid-row input, .dds-grid-row select, select, .dds-grid-row textarea {

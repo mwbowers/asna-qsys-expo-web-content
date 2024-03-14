@@ -314,21 +314,21 @@ class Page {
     }
 
     handleWindowResizeEvent() {
-        const main = DdsWindow.setVarBackgroundPosition();
+        const main = document.querySelector(MAIN_SELECTOR);
         if (main) {
             ContextMenu.hideMenus(main);
         }
     }
 
     handleMainPanelScrollEvent(event) {
-        const main = DdsWindow.setVarBackgroundPosition();
+        const main = document.querySelector(MAIN_SELECTOR);
         if (main) {
             ContextMenu.hideMenus(main);
         }
     }
 
     handleDocScrollEvent(event) {
-        const main = DdsWindow.setVarBackgroundPosition();
+        const main = document.querySelector(MAIN_SELECTOR);
         if (main) {
             ContextMenu.hideMenus(main);
         }
