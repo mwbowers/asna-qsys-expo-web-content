@@ -35,6 +35,12 @@ import { BrowserInfo } from './detection.js';
 
 const MAIN_SELECTOR = 'main[role=main]';
 
+const EXPO_CSS_CLASS = { // Defined in expo.css
+    UNINITIALIZED: 'display-element-uninitialized',
+    INITIALIZED: 'display-element-initialized',
+    INITIALIZED_WITH_WINDOW: 'display-with-window-initialized'
+}
+
 const STORAGE_NS = {
     PAGEGLOBALS: 'ASNA.Page'
 }
@@ -103,15 +109,14 @@ class Page {
         this.addOnFocusEventListener();
 
         WaitForResponseAnimation.init(thisForm);
-        const twoPanelContainer = NavigationMenu.init();
+        const twoPanelContainer = NavigationMenu.init(EXPO_CSS_CLASS.UNINITIALIZED);
 
-        this.setAsInitialized(main);
         if (twoPanelContainer) {
             twoPanelContainer.removeAttribute('style'); // Style should only contain display-hidden, remove it. Let the class take effect
         }
 
         this.winPopup = null;
-        if (DdsWindow.activeWindowRecord!==null) {
+        if (DdsWindow.activeWindowRecord !== null) {
             const imgData = DdsWindow.restoreWindowPrevPage();
             this.winPopup = DdsWindow.initPopup(thisForm);
             if (imgData && main) {
@@ -119,6 +124,7 @@ class Page {
                 main.style.height = rect ? `${rect.height}px` : 'calc(27 * 1.4em)';
             }
         }
+        this.setAsInitialized(main, this.winPopup!== null);
 
         if (this.winPopup) {
             DdsGrid.moveRecordsToPopup(thisForm, this.winPopup);
@@ -692,10 +698,12 @@ class Page {
         }
     }
 
-    setAsInitialized(main) {
+    setAsInitialized(main, hasWindow) {
         if (main.classList) {
-            main.classList.remove('display-element-uninitialized');
-            main.classList.add('display-element-initialized');
+            main.classList.remove(EXPO_CSS_CLASS.UNINITIALIZED);
+            main.classList.add(hasWindow ?
+                EXPO_CSS_CLASS.INITIALIZED_WITH_WINDOW :
+                EXPO_CSS_CLASS.INITIALIZED);
         }
     }
 

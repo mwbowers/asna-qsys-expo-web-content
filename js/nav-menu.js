@@ -11,7 +11,7 @@ import { AsnaDataAttrName } from '../js/asna-data-attr.js';
 import { Base64 } from '../js/base-64.js';
 
 class NavigationMenu {
-    init() {
+    init(styleClassUninitialized) {
         const nav = document.querySelector(`nav[${AsnaDataAttrName.ACTIVEKEY_LOCATION}]`);
 
         if (!nav) { // location === 'hidden' ... We already removed the nav element.
@@ -66,8 +66,8 @@ class NavigationMenu {
         container.appendChild(navPanel);
         container.appendChild(this.panelWrap(main));
 
-        if (nav.classList) {
-            nav.classList.remove('display-element-uninitialized');
+        if (nav.classList && styleClassUninitialized) {
+            nav.classList.remove(styleClassUninitialized);
         }
         return container;
     }

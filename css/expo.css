@@ -113,15 +113,19 @@
     }
 
 .display-element-uninitialized {
-    visibility: hidden;
+    visibility: hidden; /* Don't display until initialized. */
 }
 
-.display-element-initialized {
+.display-element-initialized { /* Page initialized (with no modal Window) */
+    /* Note: visibility: initial */
+}
+
+.display-with-window-initialized { /* Page initialized (with modal Window) */
     background-image: var(--main-window-background);
     background-repeat: no-repeat;
     background-attachment: local;
-    background-size: contain; 
-    background-position: left top; 
+    background-size: contain;
+    background-position: left top;
 }
 
 .dds-grid-row input, .dds-grid-row select, select, .dds-grid-row textarea {
