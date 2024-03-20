@@ -372,14 +372,18 @@ class SubfileController {
             }
         }
         else {
+            let iconCol = 0; 
+            span.style.gridRow = '1';
             if (sflColRange.max && sflColRange.min && sflColRange.max > sflColRange.min) {
-                span.style.gridArea = `1 / ${(sflColRange.max - sflColRange.min) - 1} / auto`;
+                iconCol = (sflColRange.max - sflColRange.min) - 1;
+                span.style.gridArea = `1 / ${iconCol} / auto`;
             }
 
             const iconRow = document.createElement('div');
             iconRow.className = `${EXPO_CLASS.GRID_ROW} ${EXPO_CLASS.GRID_ROW_NO_GAP}`;
-
-            span.style.gridRow = '1';
+            if (iconCol > 1) {
+                iconRow.style.gridTemplateColumns = `repeat(${iconCol - 1}, var(--dds-grid-col-width)) auto`; // override dds-grid-row to define less fixed columns, making the one used by icon 'auto' column.
+            }
             iconRow.appendChild(span);
             iconRow.setAttribute(AsnaDataAttrName.SFL_END_ADDED_ROW, '');
             recordsContainer.appendChild(iconRow);
