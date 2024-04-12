@@ -60,7 +60,7 @@ class Page {
         this.handleHtmlToImageFilterEvent = this.handleHtmlToImageFilterEvent.bind(this);
         this.handleHtmlToImageCompleteEvent = this.handleHtmlToImageCompleteEvent.bind(this);
 
-        this.pushKey = this.pushKey.bind(this); // Accesible thru window.asnaExpo
+        this.pushKey = this.pushKey.bind(this); // Accessible through window.asnaExpo
     }
 
     init(options) {
@@ -302,7 +302,7 @@ class Page {
 
     handleOnFocusEvent(element) {
         const activeWinSpecs = DdsWindow.parseWinSpec();
-        FeedbackArea.updateSubfileCursorRrn(element);
+        FeedbackArea.updateSubfileCursorRrnForElement(element);
         FeedbackArea.updateElementFeedback(this.getForm(), element, activeWinSpecs);
 
         window.asnaExpo.page.lastFocus = element;
@@ -464,6 +464,7 @@ class Page {
         }
 
         FeedbackArea.updateSflLowestRRN(form, topRrn);
+        FeedbackArea.updateSubfileCursorRrn(form, topRrn + (cursorPosRrnOffset >= 0?cursorPosRrnOffset:0));
 
         if (typeof (MonarchSubfilePageChanged) === 'function') {   // Notify user-code
             MonarchSubfilePageChanged(res.request.recordName, recordsContainer, res.request.from, res.request.request.to - 1, res.request.mode);
@@ -495,7 +496,7 @@ class Page {
             const focusElements = form[focusElementName];
             if (focusElements) {
                 const focusElement = focusElements.length > 0 ? focusElements[0] : focusElements;
-                FeedbackArea.updateSubfileCursorRrn(focusElement);
+                FeedbackArea.updateSubfileCursorRrnForElement(focusElement);
                 FeedbackArea.updateElementFeedback(form, focusElement, DdsWindow.parseWinSpec());
                 if (fieldValue) {
                     focusElement.value = fieldValue;
