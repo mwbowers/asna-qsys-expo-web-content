@@ -106,10 +106,12 @@ class FeedbackArea {
         return form[input.value];
     }
 
-    updateSubfileCursorRrnForElement(element) {
-        const subfileName = Subfile.getSubfileName(element);
-        if (subfileName) {
-            FeedbackArea.setHiddenFieldValue(form, FEEDBACK_HIDDEN_FIELD_NAME.atSflCursorRrn, Subfile.getRrn(element));
+    updateSubfileCursorRrnForElement(el) {
+        if (Subfile.getSubfileName(el)) {
+            const row = Subfile.findAncesorRow(el);
+            if (row) {
+                this.updateSubfileCursorRrnFromRow(row);
+            }
         }
     }
 

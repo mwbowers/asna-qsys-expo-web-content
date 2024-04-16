@@ -638,7 +638,7 @@ class Subfile {
         const openBracket = name.match(/\[/g);
         const closedBracket = name.match(/\]/g);
 
-        if (!(openBracket.length === 1 && closedBracket === 1)) {
+        if (!(openBracket.length === 1 && closedBracket.length === 1)) {
             return false;
         }
 
@@ -679,6 +679,10 @@ class Subfile {
 
         return fieldName.substr(0, iStart) === rowfieldNameCand.substr(0, ciStart) && 
             fieldName.substr(iEnd+1) === rowfieldNameCand.substr(ciEnd+1);
+    }
+
+    static findAncesorRow(el) {
+        return el.closest(`div[class~="${EXPO_CLASS.GRID_ROW}"]`);
     }
 }
 
