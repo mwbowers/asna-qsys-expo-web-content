@@ -937,7 +937,7 @@ class Terminal {
 
         // Take field value up to the cursor position.
         if (firstChrPos >= 0 && upToCursorPos > firstChrPos && upToCursorPos < field.len) {
-            adjValue = value.substring(firstChrPos, upToCursorPos + offscreenPos);
+            adjValue = value.substring(firstChrPos, upToCursorPos + this.offscreenPos);
         }
 
         // Adjust field value according to FFW
@@ -2191,8 +2191,8 @@ class Terminal {
                 const fldStartPos = this.regScr.coordToPos(rowColFldStartPos.row, rowColFldStartPos.col) + 1;
 
                 if (!this.validateSignedNumeric(fldStartPos, pos, sa.field, character)) {
-                    if (!preHelpErrorCode) {
-                        setPreHelpError('0010');
+                    if (!this.preHelpErrorCode) {
+                        this.setPreHelpError('0010');
                     }
                     return false;
                 }
@@ -2293,13 +2293,13 @@ class Terminal {
     }
 
     validateSignedNumeric(startPos, pos, field, letter) {
-        // The field allows keys 0-9 and DUP (if the DUP-enable bit is on in the associated Field Format Word (FFW)). 
-        // Typing any other character will cause an operator error display. 
-        // This field reserves the center-hand position for a sign display (- for negative and null for positive); 
-        // therefore, the largest number of characters that can be entered into this field is one less than the field length. 
-        // A signed numeric field less than 2 characters long will cause an error to be flagged. 
-        // No digit may be keyed into the centermost position; however, the cursor can be positioned there by using the 
-        // cursor movement keys and then followed by the F+ or F- key. 
+        // The field allows keys 0-9 and DUP (if the DUP-enable bit is on in the associated Field Format Word (FFW)).
+        // Typing any other character will cause an operator error display.
+        // This field reserves the right-hand position for a sign display ('-' for negative and '+' for positive);
+        // therefore, the largest number of characters that can be entered into this field is one less than the field length.
+        // A signed numeric field less than 2 characters long will cause an error to be flagged.
+        // No digit may be keyed into the right-hand position; however, the cursor can be positioned there by using the
+        // cursor movement keys and then followed by the F+ or F- key.
         // This allows changing the sign without affecting the rest of the field.
         const signPos = startPos + field.len - 1;
 
@@ -2312,7 +2312,7 @@ class Terminal {
             return false;
         }
 
-        if (pos < signPos && Valdiate.digitsOnly(letter)) {     // 0-9 in position before last
+        if (pos < signPos && Validate.digitsOnly(letter)) {     // 0-9 in position before last
             return true;
         }
 
