@@ -170,7 +170,11 @@ class SubfileController {
 
     static lastClickedSflRecord() {
         if (LastSubfileClicked.x > 0 && LastSubfileClicked.y > 0) {
-            return document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
+            const el = document.elementFromPoint(LastSubfileClicked.x, LastSubfileClicked.y);
+            if (el) {
+                if (el.classList.contains(EXPO_CLASS.GRID_ROW)) { return el; }
+                return Subfile.findAncesorRow(el);
+            }
         }
 
         return null;
@@ -683,6 +687,24 @@ class Subfile {
 
     static findAncesorRow(el) {
         return el.closest(`div[class~="${EXPO_CLASS.GRID_ROW}"]`);
+    }
+
+    static hasInputFields(sflRow) {
+        const inRow = PositionCursor.gridElements(sflRow);
+        for (let i = 0, l = inRow.length; i < l; i++) {
+            if (PositionCursor.isInputCapable(inRow[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static findFirstGridElement(sflRow) {
+        const inRow = PositionCursor.gridElements(sflRow);
+        if (inRow.length > 0) {
+            return inRow[0];
+        }
+        return null;
     }
 }
 

@@ -249,7 +249,7 @@ class Page {
                 }
             }
             else {
-                this.pushKey(aidKey);
+                this.pushKey(aidKey, null, null, action.vRowCol );
             }
         }
         else if (action.removeVolatileMsgs) {
@@ -287,6 +287,10 @@ class Page {
                     }
                     return;
                 }
+            }
+
+            if (!virtualRowCol && action.vRowCol) {
+                virtualRowCol = action.vRowCol;
             }
         }
 

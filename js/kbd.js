@@ -8,7 +8,7 @@
 export { theKbd as Kbd, FoldDrop, AidKeyHelper, AidKeyMapIndex };
 
 import { PageAlert } from '../js/page-alert.js';
-import { SubfileController } from '../js/subfile-paging/dom-init.js';
+import { SubfileController, Subfile } from '../js/subfile-paging/dom-init.js';
 import { SubfilePagingStore } from '../js/subfile-paging/paging-store.js';
 import { AsnaDataAttrName, JsonAttr } from '../js/asna-data-attr.js';
 
@@ -98,6 +98,10 @@ class Kbd {
                         return { returnBooleanValue: true }; // On a text area, <enter> should be handled by the element (in this case to possibly insert a page-break)
                     }
                     else {
+                        const keyDetails = Kbd.processNonInputCapableSubfiles('Enter');
+                        if (keyDetails) {
+                            return keyDetails;
+                        }
                         return { aidKeyToPush: 'Enter', shouldCancel: true };
                     }
 
@@ -114,6 +118,12 @@ class Kbd {
                         const sflFoldDropAction = FoldDrop.processCadidateKey(keyName, keyDetail.target);
                         if (sflFoldDropAction) {
                             return sflFoldDropAction;
+                        }
+
+                        const keyDetails = Kbd.processNonInputCapableSubfiles(keyName);
+
+                        if (keyDetails) {
+                            return keyDetails;
                         }
 
                         return { aidKeyToPush: keyName, shouldCancel: true };
@@ -176,6 +186,24 @@ class Kbd {
             Kbd._showInvalidRollAlert();
         }
         return { returnBooleanValue: false, shouldCancel: true };
+    }
+
+    static processNonInputCapableSubfiles(aidKeyToPush) {
+        const lastSflClickedRecord = SubfileController.lastClickedSflRecord();
+        if (Subfile.hasInputFields(lastSflClickedRecord)) { return null; }
+
+        const sflCtlName = SubfileController.getClosestSubfileCtrlName(lastSflClickedRecord);
+        if (!sflCtlName) { return null; }
+
+        const sflCtlStore = SubfilePagingStore.getSflCtlStore(sflCtlName);
+        if (!sflCtlStore) { return null; }
+
+        const firstNonInput = Subfile.findFirstGridElement(lastSflClickedRecord);
+        if (firstNonInput) {
+            return { aidKeyToPush: aidKeyToPush, shouldCancel: true, useAjax: false, sflCtlStore: sflCtlStore, vRowCol: firstNonInput.getAttribute(AsnaDataAttrName.ROWCOL) };
+        }
+
+        return null;
     }
 
     static handleRoll(aidKey, sflCtrlStore, nonSflRecord) {
@@ -343,8 +371,8 @@ class AidKeyHelper {
     }
 
     isEnabled(mapIndex) {
-        if (mapIndex < 0)    { return false; }
-        if (mapIndex === AidKeyMapIndex.Enter) { return true;  } // Always enabled.
+        if (mapIndex < 0) { return false; }
+        if (mapIndex === AidKeyMapIndex.Enter) { return true; } // Always enabled.
         return this.isAttention(mapIndex) || this.isFunction(mapIndex);
     }
 
