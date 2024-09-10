@@ -190,7 +190,7 @@ class Kbd {
 
     static processNonInputCapableSubfiles(aidKeyToPush) {
         const lastSflClickedRecord = SubfileController.lastClickedSflRecord();
-        if (Subfile.hasInputFields(lastSflClickedRecord)) { return null; }
+        if (lastSflClickedRecord == null || Subfile.hasInputFields(lastSflClickedRecord)) { return null; }
 
         const sflCtlName = SubfileController.getClosestSubfileCtrlName(lastSflClickedRecord);
         if (!sflCtlName) { return null; }
