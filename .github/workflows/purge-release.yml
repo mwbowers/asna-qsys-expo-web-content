@@ -28,10 +28,16 @@ jobs:
       - name: Build purge tool
         run: dotnet build PurgeExpoWebContentRelease/PurgeExpoWebContentRelease.sln --no-restore --configuration release
 
+      - name: owner
+        run: echo "Owner = ${{ github.repository_owner }}"
+
+      - name: repo
+        run: echo "Repository = ${{ github.event.repository.name }}"
+        
       - name: Run purge - New Release
-        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.event.release.tag_name }}
+        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.repository_owner }} ${{ github.event.repository.name }} ${{ github.event.release.tag_name }}
         if: ${{ github.event_name == 'release' }}
 
       - name: Run purge - Manual
-        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.event.inputs.DEPLOY_VERSION }}
+        run: PurgeExpoWebContentRelease/bin/Release/net6.0/PurgeExpoWebContentRelease.exe ${{ github.repository_owner }} ${{ github.event.repository.name }} ${{ github.event.inputs.DEPLOY_VERSION }}
         if: ${{ github.event_name != 'release' }}
